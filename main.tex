@@ -1,0 +1,1573 @@
+% !TEX program = xelatex
+% !BIB program = bibtex
+\documentclass[12pt,msc]{uom_eee_dissertation_casson}
+%\documentclass[12pt,MSc,twoside]{muthesis}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\allowdisplaybreaks[4]
+\usepackage{listings}
+\usepackage[authoryear,round]{natbib}
+\usepackage{graphicx}
+%\usepackage{cite}
+\usepackage[english]{babel}
+\usepackage{csquotes}
+\usepackage{breqn}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+\usepackage{float}
+\title{Applying The Fast Discrete Fourier Transform and Spectrum Analysis to Electricity Supply Data}
+%\school{Mathematics}
+\faculty{Science and Engineering}
+\course{Mathematics}
+\studentid{9951160}
+\submitdate{2017}
+\wordcount{6137}
+\newcommand{\beforeabstract}{\maketitle\begin{abstract}}
+\newcommand{\afterabstract}{\end{abstract}\uomtoc}
+\newcommand{\prefacesection}[1]{\clearpage\phantomsection\addcontentsline{toc}{section}{#1}\section*{#1}}
+\newcommand{\afterpreface}{\clearpage\uomstartmainbody}
+\newcommand{\figref}[1]{Figure~\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
+\newcommand{\chapref}[1]{Chapter~\ref{#1}}
+\newcommand{\secref}[1]{Section~\ref{#1}}
+\newcommand{\appref}[1]{Appendix~\ref{#1}}
+\newcommand{\eqnref}[1]{Equation~\eqref{#1}}
+\begin{document}
+
+\begin{abstract}
+Periodicity is vital for predictions and applications of mathematical principles in data analysis. Recently, there has been renewed interest in spectrum analysis about the periodicity research in R. Based on the purpose of providing some insights into the natural features of the consumption of regional electricity and deducing the relationships between domestic and non-domestic loads, we analyse half-hour records of two substations (BSPs). In this study, the fast discrete Fourier transform (FFT) and spectrum analysis were applied for discovering reliable periodicities. For the electricity demand data, the underlying trend was confirmed as the trigonometric regression model with seasonal ARMA residuals by analysing two BSPs. Analyses of spectrum revealed that there are daily and yearly periodicities for the electricity demand. Furthermore, one of the BSPs was recognised as a domestic region deduced from its diurnal periodic variation.
+%not more than 300word
+\end{abstract}
+
+\begingroup
+\let\clearpage\relax
+\prefacesection{Acknowledgements}
+Most of all, I would like to thank my supervisor Georgi Boshnakov for offering me such a remarkable aspect of data research. My sincere appreciation are also due to my supervisor who has as well been supportive and has provided me valuable recommendations with his academic knowledge, patience and encouragement. Secondly, I am especially grateful to Meng Yan and George Simpson who did the proofreading for me. Thanks to the staff of the University of Manchester for their contributions to this research and language support. In particular, I am truly grateful to Electricity North West, which is the regional electricity distribution network operator, for sharing the data with us. Finally, my acknowledgements would not be complete without thanking my friends and family for their understanding and support.\\
+
+\prefacesection{The Author}
+The author has finished the undergraduate study in the University of Liverpool with the subject of mathematics. Recently, as a postgraduate student of the University of Manchester, the author focused on statistics especially in the financial pathway.
+\endgroup
+\afterpreface
+
+\chapter{Introduction}%This chapter covers the background material for my thesis and introduces
+\label{chap:introduction}
+%require a 15mm margin on all side except the binding side that should have a 40mm margin.
+The aim of this analysis is to investigate periodicities in electricity demand data and research if trigonometric regression models with seasonal ARMA residuals can provide satisfactory models. In this thesis, several notations were used throughout. A bulk supply point, which is a load point served by substations, was represented as the BSP. Moreover, the DFT and the FFT are abbreviations of the discrete Fourier transform and the fast discrete Fourier transform respectively. A seasonal autoregressive integrated moving average model with parameters s, p, d, q, P, D and Q was symbolized generally as $SARIMA(p,d,q)(P,D,Q)_{s}$, and details will be referred again later.
+
+\section{Background} %% data/problem
+\label{sec:background}
+We analyse data on electricity demand at two individual Bulk Supply Points (BSPs). The data cover the period from 2009-01-01 to 2015-05-16 and contain half-hourly records of the electricity demand at the selected BSPs. The data were kindly provided by the Electricity North West. For confidentiality reasons the units of measurement are unspecified and we do not identify the BSPs but refer them by the invented names BspAlb and BspArn. The majority of the information about each substation can be obtained by using R comments as attached in \appref{app:all-substations}, for instance, the mean demand of electricity of substation BspAlb was provided as $6.72$ by using function summary() in R. These time series can be simulated with a trigonometric regression and a seasonal ARMA modelling. There are three main goals of this thesis : (a) identifying an underlying tendency by fitting the trigonometric regression with a seasonal ARMA residuals for the sequence of the electricity demand observations by using R, (b) comparing the periodicities between a domestic and a non-domestic load served by the substations according to the the frequencies, and (c) computing the significant periodicities of two typical BSPs BspAlb and BspArn by a FFT procedure.
+
+\section{Previous Work} %literature review:what others have done
+\label{sec:previous-work}
+The discovery of Fourier series in 1807 has triggered a huge amount of innovative scientific inquiries about Fourier analysis. Recent developments in spectrum analysis have led to a proliferation of studies in the inherent properties of individual time series, especially the underlying trends and periodicity. For example, the \citet{5306832} stated:' Spectrum analysis can be applied for DNA sequences detecting hidden periodicities'. In that article the evidence of main periodicities of a symbolic DNA sequence was given by the ability of spectrum entropy. In addition, a seminal study in this area is the work of harmonic analysis with discrete Fourier transform (DFT) \citep{harris1978use}. A number of studies have investigated the electricity demand by examining seasonal characteristics. As a breakthrough, \citet{sinden2007characteristics} reported that there are seasonal weather patterns correlating with electricity demand. As an application, the periodicities of electricity demand records were deduced by using of the periodogram spectral estimation and FFT in R.
+
+\section{Methodology}
+\label{sec:methodology}
+\subsection{Fourier Series and Spectrum Analysis for Trigonometric Regressions}
+\label{sec:fourier-series-spectrum}
+\subsectionmark{Spectrum Analysis}
+In 1807, J. B. J Fourier stated the theorem that an arbitrary (continuous) signal can be decomposed into a combination of sinusoids with distinct frequency, amplitude and phase angle \citep{baron1878analytical}. According to \citet{LejeuneDirichlet1850} as cited by \citet{Barreira2012}, there is a strict condition for this theorem which is that a periodic signal can be represented as sinusoidal and cosinusoidal series, only if the convergency of this function can be clarified. Taken together, these findings suggested that a series is referred as a Fourier series, whose behaviour can be expanded into appropriate trigonometric functions and whose periodicity can be analysed logically, and this methodology was declared as Fourier spectrum analysis (harmonic analysis)\citep{bloomfield2004fourier}. The period T is defined as time taken for one cycle and the relationship with frequency $\omega$ was deduced as $T$ = $2\pi/\omega$. Because of this, a function of Fourier series with the period T, i.e., $f(t)=f(t+T)$, could be represented as follows.
+\begin{equation}
+\label{eq:1-1}
+\begin{aligned}
+f(t)&=\sum_{k=0}^{\infty}A_{k}\sin(\omega_{k}t+\phi_{k})\\
+    &=\sum_{k=0}^{\infty}[A_{k}\sin(\phi_{k})\cos(\omega_{k}t)+A_{k}\cos(\phi_{k})\sin(\omega_{k}t)]\\
+    &=\sum_{k=0}^{\infty}[a_{k}\cos(\omega_{k}t)+b_{k}\sin(\omega_{k}t)]
+\end{aligned}
+\end{equation}
+where $A_{k}$ is the mean adjusted amplitude, $\phi _{k}$ is the mean adjusted phase angle and $\omega_{k}$ is the mean adjusted frequency for the $k^{th}$ harmonic series. Therefore, the following equations can also be used for calculations
+\begin{equation}
+\label{eq:1-2}
+\begin{aligned}
+A_{k}=\sqrt{a_{k}^{2}+b_{k}^{2}}
+\end{aligned}
+\end{equation}
+\begin{equation}
+\label{eq:1-3}
+\begin{aligned}
+\phi_{k}=\arctan(\frac{a_{k}}{b_{k}})
+\end{aligned}
+\end{equation}
+\begin{equation}
+\label{eq:1-4}
+\begin{aligned}
+\omega_{k}=2\pi\frac{k}{T}
+\end{aligned}
+\end{equation}
+where $a_{k}$ and $b_{k}$ are adjusted Fourier coefficients, and $\frac{k}{T}$ is the frequency of the $k^{th}$ harmonic series. According to the Euler's formula \citet[details shown as][pg.~12-15]{osgood2009fourier}, the $a_{k}$ and $b_{k}$ can be calculated (in a finite period T) as
+\begin{equation}
+\label{eq:1-5}
+\begin{aligned}
+a_{k}=\frac{2}{T}\int^{T}_{0}[f(t)\cos(\omega_{k}t)]dt
+\end{aligned}
+\end{equation}
+\begin{equation}
+\label{eq:1-6}
+\begin{aligned}
+b_{k}=\frac{2}{T}\int^{T}_{0}[f(t)\sin(\omega_{k}t)]dt
+\end{aligned}
+\end{equation}
+where $f(t)$ is the amplitude of segment $t$ during a period T and $k=0, 1, 2, \dots$ represents a sequence of frequencies. Depending on the numerical approximation principle \citet[see ][ chap.4]{bloomfield2004fourier}, the above formulae can be transformed into
+\begin{equation}
+\label{eq:1-7}
+\begin{aligned}
+a_{k}=\frac{2}{T}\sum_{i=0}^{N-1}f(t_{i})\cos(\omega_{k}t_{i})(\Delta t_{i})
+\end{aligned}
+\end{equation}
+\begin{equation}
+\label{eq:1-8}
+\begin{aligned}
+b_{k}=\frac{2}{T}\sum_{i=0}^{N-1}f(t_{})\sin(\omega_{k}t_{i})(\Delta t_{i})
+\end{aligned}
+\end{equation}
+where N is the number of the whole data, $t_{i}$ is the recording time of $i^{th}$ point and the segment $\Delta t_{i}$ = $t_{i+1}$ - $t_{i}$.\\
+
+The Parseval's Theorem was stated as the change of the amplitude, which is the weighted sum of squares of weighting sine and weighting cosine functions, is represented in the periodogram as a spectrum entropy caused by a segment $\Delta t_{i}$. As shown in \eqnref{eq:1-7} and \eqnref{eq:1-8}, this relationship can be expressed in the following form
+\begin{equation}
+\label{eq:1-9}
+\begin{aligned}
+Var(x)=\frac{1}{2}\sum_{m=1}^{(n/2)-1}A_{m}^{2}+A_{n/2}^{2}
+\end{aligned}
+\end{equation}
+\citep{bloomfield2004fourier}.
+
+The periodogram of a time series demonstrates variances and oscillations over each Fourier frequency, which illustrates the contribution of the weight of this frequency to the total variance. \tabref{table:1} presents the corresponding periods, frequencies and contributions to variance for the different harmonic series.
+\begin{table}
+\centering
+\begin{tabular}{| c | c  | c | c |c | }
+		\hline
+		harmonic & period $\omega_{k}$ & frequency & angular frequency & contribution \\
+$k^{th}$&$(2\pi/\omega_{k})$&(k/T)&(2$\pi$ k/T)&to variance \\\hline
+		1 & n   & 1/n & $2\pi/n$ & $\frac{1}{2}A^{2}_{1}$ \\ \hline
+		2 & n/2 & 2/n & $4\pi/n$ & $\frac{1}{2}A^{2}_{2}$\\ \hline
+		3 & n/3 & 3/n & $6\pi/n$ & $\frac{1}{2}A^{2}_{3}$\\ \hline
+		$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$& $\vdots$\\ \hline
+		n/2-1 & n/(n/2-1) & (n/2-1)/n & $(n-2)\pi/n$ & $\dfrac{1}{2}A^{2}_{n/2-1}$ \\ \hline
+		n/2 & 2 & 1/2 & $\pi$ & $A^{2}_{n/2}$\\ \hline
+	\end{tabular}
+\caption{Periods, frequencies and contributions on variance of the $k^{th}$ harmonic series.
+     }
+	\label{table:1}
+\end{table}
+
+As a consequence, the time series can be converted into a combination of Fourier functions with seasonal frequencies and its frequencies (periodicities) can be researched by the spectrum analysis by taking advantages of the computing. As the conclusion made by \citet{scargle1982studies}, one of the main factors of using the periodogram spectral estimation was that the trigonometric component corresponding to the maximal spike of the spectrum periodogram has a large contribution in the variance. Hence, the periodicities of a time series can be identified by the corresponding frequencies of the higher spikes in the raw periodogram and can be programmed in R \citep[see ][ chap.9]{cowpertwait2009introductory}. To be more precise, the periodogram spectral analysis involves a raw plot of $A^{2}_{k}$, as spikes, against frequencies from -0.5 to 0.5. Due to the symmetry of periodogram about 0, it is sufficient to describe and plot the positive frequency part simply within [0, 0.5] in R.
+
+\subsection{ Discrete Fourier Transform (DFT)}
+\label{sec:dft}
+Through Fourier transforms, an expression in the physical space is transformed into a frequency channel, which facilitates the analysis of periodicity and the application of mathematical principles. The discrete Fourier transform (DFT) is a representation of the Fourier transform of a discrete sequence defined for an arbitrarily sampled database, $X(t_{i})$, $i=1$, $2$, $\dots$, $N_{0}$, as
+\begin{equation}
+\label{eq:1-10}
+\begin{aligned}
+FT_{X}( \omega )=\sum_{j=1}^{N_{0}}X(t_{j})\exp(-i\omega t_{j})\\
+%FT_{X}( \omega )=\sum_{j=1}^{N_{0}}X(t_{j})W_{N}t_{j}j\\
+%where W_{N}=\exp(-2\pi/N) is a factor\\
+\end{aligned}
+\end{equation}
+where $\omega=2\pi f$ and the $\omega$ is defined in [0, 2$\pi$]. Nevertheless, the fast discrete Fourier transform (FFT) is an improved methodology of DFT produced in R by using the function fft(), which reduces the massive amount of computations from $N^{2}$) to $(N/2)\log_{2}(N)$, owing to the symmetry and periodicity of exponential. However, due to this reason, the uncertainty of discovering periodicities by FFT procedure was caused by the ineluctable low of the frequency resolution( periodicity resolution). According to the Nyquist–Shannon sampling theorem declared by \citet{vaidyanathan2001generalizations}, the frequencies within $f_{s}/2$ are merely acceptable, and then the frequency spectrum is symmetric around n/2. As a result, the range of $\omega$'value was considered as [0,$\pi$] and the frequencies were set within 0.5. 
+
+It has been revealed by \citet{scargle1982studies} that the periodogram of the DFT can also be demonstrated for the evaluation of an arbitrary frequency f as
+\begin{equation}
+\label{eq:1-11}
+\begin{aligned}
+P_{X}(\omega)&=\frac{1}{N_{0}}|FT_{X}( \omega )|^{2}\\
+&=\frac{1}{N_{0}}|\sum_{j=1}^{N_{0}}X(t_{j})\exp(-i\omega t_{j})|^{2}\\
+&=\frac{1}{N_{0}}[(\sum_{j=1}^{N_{0}}X(t_{j})\cos\omega t_{j})^{2} + (\sum_{j=1}^{N_{0}}X(t_{j})\sin\omega t_{j})^{2}]\\
+\end{aligned}
+\end{equation}
+where $\omega$ = $2\pi$ f. This expression confirms that the FFT is a shortcut to produce the locations of the considerable DFT and obtain periodicities directly using function fft() in R. If the location of significant DFT can be confirmed, the actual frequency f(n) can be calculated as
+\begin{equation}
+\label{eq:1-12}
+\begin{aligned}
+F(t)=(n*f_{s})/N
+\end{aligned}
+\end{equation}
+where the f_{s} is a sampling frequency distinguishing with the actual frequency f(n). Hence, the periodicity T can also be deduced by the following formula.
+\begin{equation}
+\label{eq:1-13}
+\begin{aligned}
+T=N/(n*f_{s})
+\end{aligned}
+\end{equation}
+where N is the number of total data, and n corresponds to the (n+1)^{th} sampling point. Although the fast Fourier transform (FFT) would be more convenient to obtain periodicities of a time series, it is inevitable to cause spectrum leakage and fence effect \citep{reddy1996fft}. 
+
+\section{Application}  %% Results and discussion
+\label{sec:application}
+The analyses of underlying trends and periodicities were based on the analyses of the optimal model for electricity demand data. Following previous researches, the underlying trends was identified as a trigonometric regression with seasonal ARMA residuals. Meanwhile, the periodicities of electricity demand at each BSP can be predicted regularly by the DFT. Finally, the simulation of energy series at the BspAlb indicated a periodicity as being reasonably substantiated as daily, which differs from the yearly periodicity for the BspArn series. According to the predicted periodicities, it was deduced that the BspAlb should be a domestic load, whereas the BspArn should be treated as a non-domestic load.
+
+\chapter{Analysis of Electricity Demand at BspAlb}
+\label{chap:bspalb-analysis}
+To analyse the tendency and periodicities, the data about the electricity demand of substations serving for the BspAlb and BspArn were fitted by a trigonometric regression model with seasonal ARMA residuals. The spectrum analyses were utilized to discover frequencies for a trigonometric regression model. After that, by comparing the AICs on different seasonal ARMA models, a optimal seasonal ARMA model was found for the residuals.
+
+\section{Visualization of the Time Series}
+\label{sec:bspalb-visualization}
+The length of the time series of BspAlb series (AlbionSt.ts) was $111552$ including $291$ zeros as obtained from previous analyses. Since the appearance of zeros was probably caused by accident, the first step in this process was to replace the zeros among this series by the $NA$ (which is the abbreviation of not available and represents the missing value in the R outputs). As a result, the number of missing values in the researched data have been increased to $1059$. To complete the data, a practical method was then utilised to complete the data in the R by substituting $NA$ with the mean $6.72$ referred as before. To analyse the BspAlb time series, the packages timeDate \citet{tDate} and timeSeries \citet{tSeries} were installed. Then the plot below visualizes a replaced time series by using the attached R codes in \appref{app:bspalb-codes}, \secref{sec:app-bspalb-seasonal}.
+\begin{figure}[t]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Alts.pdf}\\
+	\caption{Time plot at the BspAlb series.
+	}
+	\label{fig:1}
+\end{figure}
+In \figref{fig:1}, the BspAlb time series fluctuated with ups and downs during six years(range 2009 to 2015). The most interesting aspect of this graph is that the demand for electricity touched two lower points in May and June and varies in an annual period, which indicated a use of the seasonal adjusted process. The decreasing or increasing trends were not obvious in the demand for electricity, thereby neglecting the linear tendency in the analyses of electricity series. Therefore, a trigonometric regression can be modelled for the electricity demand at the BspAlb from 2009 to 2015.
+
+\section{Fitting a Trigonometric Regression Model For BspAlb}
+\label{sec:bspalb-trig-regression}
+A visible method, which can be adopted for the investigation of stationarity, was to examine the autocorrelation function (ACF) and the partial autocorrelation function (PACF) from \figref{fig:2}.
+\begin{figure}[t]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Alap}\\
+	\caption{BspAlb series: acf and pacf.
+	}
+	\label{fig:2}
+\end{figure}
+The top half of \figref{fig:2} shows that the correlations in the autocorrelogram did not appear a exponential decay, which demonstrated that the autocorrelations of the consecutive lags of the BspAlb series are formally dependent. Hence, the electricity demand at BspAlb should be a periodic but non-stationary time series. From this perspective, the priorities were to stabilize the BspAlb series by a seasonal adjustment process and to find seasonal frequencies. From the ACF plot, the correlations are cyclical with $48$ dots, which is a diurnal periodic variation. It suggested that the periodicity of the BspAlb series should be no less than one day. Together with the analyses of time plots of BspAlb series, it was appropriate to assume that the cycles are shorter than a week. Hence, a trigonometric regression model with a weekly periodic variation including $48*7$ dots was fitted for the BspAlb series. As suggested by \citet[ chap.5]{cowpertwait2009introductory}, for a trigonometric regression model the sine and cosine functions with harmonic frequencies $\omega_{i}$ was formalized as below
+\begin{equation}
+\label{eq:2-1}
+\begin{aligned}
+X_{t}=\sum a_{i}\cos(\omega_{i} t) +\sum b_{i}\sin(\omega_{i} t)+y_{t}.
+\end{aligned}
+\end{equation}
+In the above equation the angular frequency $\omega_{i}=2\pi*f$ and the frequencies $f$ = $0$, $1/s$, $2/s$, $\dots$, $[s/2]/s$ where s represents the period, the number of the dot in a period was $48*7$ for the BspAlb series. Consequently, a trigonometric regression model with a weekly or even more shorter periodicities can be written as
+\begin{equation}
+\label{eq:2-2}
+\begin{aligned}
+X_{t}=\sum^{24*7}_{i=0} a_{i}\cos(\omega_{i} t) +\sum^{24*7}_{i=0} b_{i}\sin(\omega_{i} t)+y_{t},
+\end{aligned}
+\end{equation}
+where $ t=1$, $2$, $\dots$, $111552$ and $\omega_{i}=2\pi i/(48*7)$.
+
+The $\cos(0)=1$ and $\sin(0)=0$ terms could be counted into the intercept term when $i=0$, as $\cos(0)=1$ and $\sin(0)=0$. Because of this, the $\cos(\omega_{0} * t)$ term and the $\sin(\omega_{0} * t)$ term were replaced by an intercept $c_{1}$, and \eqnref{eq:2-2} was simplified as
+\begin{equation}
+\label{eq:2-3}
+\begin{aligned}
+X_{t}=c_{1}+\sum^{24*7}_{i=1} a_{i}\cos(2\pi it/(48*7)) +\sum^{24*7}_{i=1} b_{i}\sin(2\pi it/(48*7))+y_{t}.
+\end{aligned}
+\end{equation}
+
+As can be seen from \appref{app:bspalb-codes}, \secref{sec:app-bspalb-seasonal}, the function lm() was used for auxiliary variables $\cos(2\pi *i/(48*7)*t)$ and $\sin(2\pi *i/(48*7)*t)$, which were represented as $COS[, i]$ and $SIN[, i]$, respectively, and then the estimations and significance of coefficients $c_{1}$, $a_{i}$ and $b_{i}$ were evaluated automatically. And the results of this fitting is given as
+\begin{lstlisting}[language=R,breaklines=true]
+> summary(Al.lm1)
+
+Coefficients:
+              Estimate Std. Error  t value Pr(>|t|)
+(Intercept)  6.741e+00  3.615e-03 1864.960  < 2e-16 ***
+COS[, 1]    -4.420e-01  5.112e-03  -86.463  < 2e-16 ***
+SIN[, 1]    -1.389e-02  5.112e-03   -2.717 0.006583 **
+COS[, 2]    -2.026e-01  5.112e-03  -39.639  < 2e-16 ***
+SIN[, 2]    -4.504e-03  5.112e-03   -0.881 0.378251
+COS[, 3]    -2.663e-02  5.112e-03   -5.210 1.89e-07 ***
+SIN[, 3]    -3.762e-02  5.112e-03   -7.358 1.88e-13 ***
+COS[, 4]     5.416e-02  5.112e-03   10.595  < 2e-16 ***
+SIN[, 4]    -5.668e-02  5.112e-03  -11.088  < 2e-16 ***
+COS[, 5]     1.099e-01  5.112e-03   21.492  < 2e-16 ***
+SIN[, 5]    -1.606e-02  5.112e-03   -3.142 0.001679 **
+COS[, 6]     1.172e-01  5.112e-03   22.917  < 2e-16 ***
+SIN[, 6]     3.706e-02  5.112e-03    7.249 4.22e-13 ***
+COS[, 7]    -1.084e+00  5.112e-03 -212.128  < 2e-16 ***
+SIN[, 7]    -1.643e+00  5.112e-03 -321.434  < 2e-16 ***
+COS[, 8]     1.670e-01  5.112e-03   32.676  < 2e-16 ***
+SIN[, 8]    -5.387e-03  5.112e-03   -1.054 0.291988
+COS[, 9]     9.946e-02  5.112e-03   19.456  < 2e-16 ***
+SIN[, 9]    -3.461e-02  5.112e-03   -6.771 1.29e-11 ***
+COS[, 10]    3.344e-02  5.112e-03    6.541 6.15e-11 ***
+SIN[, 10]   -4.862e-03  5.112e-03   -0.951 0.341523
+...
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1.
+\end{lstlisting}
+
+In order to improve the fitted model with \eqnref{eq:2-3}, the p-value of each trigonometric variable was tested at the significant level $10\%$. As indicated by the P-value tests, there were 60 important frequencies and 90 significant terms including the intercept by summarising the fitting model in \eqnref{eq:2-3}, shown in \eqnref{eq:2-4}. For instance, the variables $\cos(2\pi *4/(48*7)*t)$ and $\sin(2\pi *4/(48*7)*t)$ were statistically significant at an arbitrary level resulting from the small P-values ($<$ $2*10^{-16}$) for both of them. Thus, the frequency 4/(48*7) was deduced as a contributing factor and was retained as a important frequency for the trigonometric regression modelling. By contrast, differing from the $\cos(2\pi *8/(48*7)*t)$ term, the term $\sin(2\pi *8/(48*7)*t)$  should be rejected at the significant level $10\%$ because the p-value is $0.291988$ ($>10\%$). Hence, the components $\cos(2\pi *\hat{f}_{i}*t)$ and $\sin(2\pi *\hat{f}_{i}*t)$ with the seasonal frequencies $\hat{f}_{i}$ ($i$ = 1, ..., 60) shown as follows were chosen for our improved trigonometric regression model.
+ \begin{equation}
+ \label{eq:2-4}
+ \begin{aligned}
+&\hat{f}_{1}=1/(48*7), \quad \dots,\quad \hat{f}_{23}=23/(48*7),\\
+&\hat{f}_{24}=25/(48*7),\quad \dots, \quad\hat{f}_{36}=37/(48*7),\\
+&\hat{f}_{37}=39/(48*7), \quad \dots, \quad\hat{f}_{42}=44/(48*7),\\
+&\hat{f}_{43}=46/(48*7), \quad \dots, \quad \hat{f}_{47}=50/(48*7),\\
+&\hat{f}_{48}=54/(48*7), \quad \dots, \quad \hat{f}_{51}=57/(48*7),\\
+&\hat{f}_{52}=63/(48*7), \quad \hat{f}_{53}=70/(48*7),\quad \hat{f}_{54}=71/(48*7),\quad \hat{f}_{55}=77/(48*7),\\
+&\hat{f}_{56}=84/(48*7), \quad \hat{f}_{57}=126/(48*7),\quad \hat{f}_{58}=140/(48*7),\quad \hat{f}_{59}=154/(48*7),\\ &\hat{f}_{60}=161/(48*7).
+\end{aligned}
+\end{equation}
+
+To examine the residual series, the ACF and PACF plots were illustrated in \figref{fig:3}. The ACF plot shows that there still existed correlations between the residuals for the trigonometric regression fitting with the frequencies $\hat{f}_{1}$, $\dots$, $\hat{f}_{60}$. Furthermore, the necessity of further investigations on additional frequencies also emerged from these ACF and PACF.
+\begin{figure}[H]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Alap-res1.pdf}\\
+\caption{Residuals after fitting the trigonometric regression model with the frequencies in \eqnref{eq:2-4} to the BspAlb: acf and pacf.
+	}
+	\label{fig:3}
+\end{figure}
+
+
+A quantitative approach, which can be used for finding potential frequencies in the seasonal adjustment process, was the spectrum analysis \citep[see ][ chap.9]{cowpertwait2009introductory}. In this respect, spectrum analyses were used to discover further the adapted seasonal frequencies for the BspAlb series where the results of spectrum analysis was ordered and the turning points were analysed by package pastecs \citep{pastecs} in R. Then the corresponding frequencies of the considerable spectrum were modified into the trigonometric regression model. The codes for the first spectrum analysis for the residuals is attached in \appref{app:bspalb-codes}, \secref{sec:app-bspalb-seasonal} and the spectrum is illustrated as below.
+\begin{figure}[H]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Alspec-res1.png}\\
+\caption{Spectrum analysis for residuals after fitting the trigonometric regression model with the frequencies in \eqnref{eq:2-4} to the BspAlb: (a) spectrum; (b) spectrum for the low-frequencies.
+	}
+	\label{fig:4}
+\end{figure}
+
+As shown in the top \figref{fig:4}, there are several peaks close to the frequency 0. Following the property of spectrum, which frequencies contributes to the variance most, are the frequencies with higher spikes in the spectrum. In this case, the additional frequencies were detected by doing the first spectrum analysis for the trigonometric regression model in \eqnref{eq:2-4}. In the meantime, for a further study of periodicity, these frequencies were produced as a pattern of $\hat{f_{i}}=1/(48*7*w_{i})$, where w was outputted as the periodicity on a weekly basis. One reason for this operation was that if the period was symbolized as s, then the frequency f can be calculated by $f=1/s$.
+
+For example, since the maximal peak in spectrum was observed as $28963.75$ corresponding to a frequency 0.0000533 which can be approximated to $0.0000531$ $=$ $1/48*7*56$. A considerable periodicity was explored as 56 weeks which means that the sinusoidal and cosinusoidal variables with frequency $\hat{f}_{61}=1/(48*7*56)$ should be added to the fitted model shown in \eqnref{eq:2-3}. Potential periodicities were discovered programmatically according to the R comments attached in \appref{app:bspalb-codes}, \secref{sec:app-bspalb-seasonal} and transformed as
+\begin{equation}
+\label{eq:2-5}
+\begin{aligned}
+&0.0000178 =1/(48*7*167);\quad&0.0000266 =1/(48*7*112); \quad&0.0000902 =1/(48*7*33);\\
+&0.0000992 =1/(48*7*30); \qquad&0.000114 =1/(48*7*26);  \quad &0.000142 =1/(48*7*21);\\
+&0.000165 =1/(48*7*18);  \qquad&0.000186 =1/(48*7*16);  \quad &0.000198 =1/(48*7*15);\\
+&0.000229 =1/(48*7*13);  \qquad&0.000248 =1/(48*7*12);  \quad &0.000298 =1/(48*7*10);\\
+&0.000331 =1/(48*7*9);   \qquad&0.000372 =1/(48*7*8);   \quad &0.000425 =1/(48*7*7);\\
+&0.000496 =1/(48*7*6);   \qquad&0.000595 =1/(48*7*5);   \quad &0.000744 =1/(48*7*4);\\
+&0.000992 =1/(48*7*3);        &0.00149 =1/(48*7*2).\quad
+\end{aligned}
+\end{equation}
+After adding the components $\cos(2\pi *\hat{f}_{i}*t)$ and $\sin(2\pi *\hat{f}_{i}*t)$ with the frequencies in \eqnref{eq:2-5}, the significant terms were picked by the results of p-value tests. And prior to restarting the spectrum analyses, the non-significant terms were deleted from the previous fitted model.
+
+\begin{figure}
+\thispagestyle{empty}
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width = 2cm, minimum height=1cm,text centered, draw = black]
+\tikzstyle{io} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=1cm, minimum height=1cm, text centered, draw=black]
+\tikzstyle{process} = [rectangle, minimum width=1cm, minimum height=1cm, text centered, draw=black]
+\tikzstyle{decision} = [diamond, aspect = 3, text centered, draw=black]
+% 箭头形式
+\tikzstyle{arrow} = [->,>=stealth]
+\begin{tikzpicture}[node distance=1.5cm]
+%定义流程图具体形状
+\node[startstop](start){Start};
+\node[io, below of = start, yshift = -1cm](in1){Fitting linear model with trigonometric variates};
+\node[process, below of = in1, yshift = -1cm](pro1){Modifying the trigonometric regression modeling};
+\node[decision, below of = pro1, yshift = -1cm](dec1){Are all the terms signifinant?};
+\node[process, below of = dec1, yshift = -1cm](pro2){Finding seasonal frequencies by analysing spectrum of residuals};
+\node[decision, below of = pro2, yshift = -2cm](dec2){Are there addional frequencies need to be added?};
+\node[io, below of = dec2, yshift = -2cm](out1){Outputting the completed trigonometric regression};
+\node[startstop, below of = out1, yshift = -1cm](stop){Stop};
+\coordinate (point1) at (-5cm, -7.5cm);
+\coordinate (point2) at (-8.5cm, -13.5cm);
+%连接具体形状
+\draw [arrow] (start) -- (in1);
+\draw [arrow] (in1) -- (pro1);
+\draw [arrow] (pro1) -- (dec1);
+\draw (dec1) -- node [above] {N} (point1);
+\draw [arrow] (point1) |- (pro1);
+\draw [arrow] (dec1) -- node [right] {Y} (pro2);
+\draw [arrow] (pro2) -- (dec2);
+\draw (dec2) -- node [above] {Y} (point2);
+\draw [arrow] (point2) |- (pro1);
+\draw [arrow] (dec2) -- node [right] {N} (out1);
+\draw [arrow] (out1) -- (stop);
+\end{tikzpicture}
+	\caption{Flowchart for the trigonometric regression modelling.
+	}
+	\label{fig:5}
+\end{figure}
+
+Following the flowchart illustrated in the next page, the processes were repeated five times and the complete R codes are attached in \appref{app:bspalb-codes}, \secref{sec:app-bspalb-seasonal}. Finally, according to the outputs in \appref{app:bspalb-outputs}, other significant seasonal frequencies were ordered increasedly as
+\begin{equation}
+\label{eq:2-6}
+\begin{aligned}
+&\hat{f}_{61}=1/(48*7*167),\quad\hat{f}_{62}=1/(48*7*112),\quad\hat{f}_{63}=1/(48*7*84),\quad\hat{f}_{64}=1/(48*7*67),\\
+&\hat{f}_{65}=1/(48*7*56),\quad\hat{f}_{66}=1/(48*7*48),\quad\hat{f}_{67}=1/(48*7*42),\quad\hat{f}_{68}=1/(48*7*37),\\
+&\hat{f}_{69}=1/(48*7*33),\quad\hat{f}_{70}=1/(48*7*30),\quad\hat{f}_{71}=1/(48*7*28),\quad\hat{f}_{72}=1/(48*7*26),\\
+&\hat{f}_{73}=1/(48*7*24),\quad\hat{f}_{74}=1/(48*7*22),\quad \dots,\quad\hat{f}_{81}=1/(48*7*15),\\ &\hat{f}_{82}=1/(48*7*13),\quad\hat{f}_{83}=1/(48*7*12),\quad\hat{f}_{84}=1/(48*7*10),\quad \dots,\\ &\hat{f}_{90}=1/(48*7*4)\\
+\end{aligned}
+\end{equation}
+
+Overall, the trigonometric regression modelling $\hat{X_{t}}$ for the electricity demand of the BspAlb can be seen as below; also the increasing seasonal frequencies and the estimated coefficients of significant terms are listed in \tabref{table:2}.
+\begin{equation}
+\label{eq:2-7}
+\begin{aligned}
+\hat{X_{t}}=6.74791+\sum^{91}_{i=1} a_{i}\cos(2\pi t\hat{f}_{i}) +\sum^{91}_{i=1} b_{i}\sin(2\pi t\hat{f}_{i})+y_{t}.
+\end{aligned}
+\end{equation}
+
+\begin{table}
+\centering
+\begin{tabular}{| c | c | c | c | c | c |}
+		\hline
+		frequency($\hat{f}_{i}$) & $a_{i}$ & $b_{i}$ & frequency($\hat{f}_{i}$) & $a_{i}$ & $b_{i}$\\ \hline
+1/(48 * 167 * 7) & -0.06080& 0.16267& 1/(48 * 112 * 7) &  0.16120& -0.01207 \\ \hline
+1/(48 * 84 * 7)  &  0.11826&-0.10831&1/(48 * 67 * 7)   &  0.07070& -0.18086\\ \hline
+1/(48 * 56 * 7)) &  0.54420&-0.76727&1/(48 * 48 * 7)   & -0.06776&  0.67673 \\ \hline
+1/(48 * 42 * 7)  & -0.12498& 0.37583&1/(48 * 37 * 7)   & -0.02114&  0.14211 \\ \hline
+1/(48 * 33 * 7)  &  0.02439& 0.04452&1/(48 * 30 * 7)   & -0.12104&  0.14112 \\ \hline
+1/(48 * 28 * 7)  &  0.05632& 0.16654&1/(48 * 26 * 7))  &  0.27413&  0.08243\\ \hline
+1/(48 * 24 * 7)  & -0.08879& 0.14335&1/(48 * 22 * 7)   & -0.10698&  0.15269 \\ \hline
+1/(48 * 21 * 7)  &  0.08280& 0.13444&1/(48 * 20 * 7)   &  0.16316&  0.07958 \\ \hline
+1/(48 * 19 * 7)  &  0.13118& 0.04534&1/(48 * 18 * 7)   &  0.09920& 0.00000 \\ \hline
+1/(48 * 17 * 7)  &  0.00569&-0.03312&1/(48 * 16 * 7)   &  0.00000&  0.06490 \\ \hline
+1/(48 * 15 * 7)  & -0.01931& 0.00000&1/(48 * 13 * 7)   & -0.04950& -0.04043\\ \hline
+1/(48 * 12 * 7)  & -0.01051& 0.04582&1/(48 * 10 * 7))  &  0.02990&  0.04168\\ \hline
+1/(48 * 9 * 7)   &  0.05538& 0.01840&1/(48 * 8 * 7)    & -0.06752& -0.01641\\ \hline
+1/(48 * 7 * 7)   & -0.00000&-0.01453&1/(48 * 6 * 7)    &  0.00000& -0.02840\\ \hline
+1/(48 * 5 * 7)   &  0.01318& 0.00000&1/(48 * 4 * 7)    & -0.03002&  0.02833\\ \hline
+1/(48*7)         & -0.44200&-0.01528&2/(48*7)          & -0.20263&  0.00000\\ \hline
+3/(48*7)         & -0.02662&-0.03808&4/(48*7)          &  0.05418& -0.05703\\ \hline
+5/(48*7)         &  0.10988&-0.01634&6/(48*7)          &  0.11717&  0.03683\\ \hline
+7/(48*7)         & -1.08441&-1.64340&8/(48*7)          &  0.16705&  0.00000  \\ \hline
+9/(48*7)         &  0.09947&-0.03476&10/(48*7)         &  0.03345&  0.00000 \\ \hline
+11/(48*7)        &  0.02174& 0.04398&12/(48*7)         &  0.04111&  0.10714\\ \hline
+13/(48*7)        &  0.09911& 0.16014&14/(48*7)         & -0.01640&  -0.7945 \\ \hline
+15/(48*7)        &  0.07920& 0.10933&16/(48*7)         &  0.03858&  0.05975\\ \hline
+17/(48*7)        &  0.000  & 0.02454&18/(48*7)         & -0.03672&  0.00000  \\ \hline
+19/(48*7)        & -0.05879&-0.01805&20/(48*7)         & -0.06893&  0.00000  \\ \hline
+21/(48*7)        & -0.05929& 0.27496&22/(48*7)         & -0.05906&  0.00000 \\ \hline
+23/(48*7)        & -0.03191& 0.00000&25/(48*7)         &  0.01134& -0.01176\\ \hline
+26/(48*7)        &  0.03754&-0.02455&27/(48*7)         &  0.05360& -0.04474\\ \hline
+28/(48*7)        & -0.03913&-0.01444&29/(48*7)         &  0.04629& -0.03941\\ \hline
+30/(48*7)        &  0.02092&-0.02898&31/(48*7)         &  0.01063& 0.00000\\ \hline
+32/(48*7)        &  0.01131& 0.01948&33/(48*7)         &  0.02343& 0.03854\\ \hline
+34/(48*7)        &  0.04856& 0.03990&35/(48*7)         & -0.10643&-0.22327\\ \hline
+36/(48*7)        &  0.04628& 0.01765&37/(48*7)         &  0.02276& 0.00000\\ \hline
+38/(48*7)        & -0.01211& 0.00000&40/(48*7)         & -0.02134& 0.00070\\ \hline
+40/(48*7)        & -0.02634& 0.00000&42/(48*7)         &  0.03397& 0.00000\\ \hline
+43/(48*7)        & -0.02627& 0.00000&44/(48*7)         & -0.01521& 0.00000 \\ \hline
+46/(48*7)        &  0.00000&-0.01011&47/(48*7)         &  0.000  &-0.02035\\ \hline
+48/(48*7)        &  0.00000&-0.02980&49/(48*7)         &  0.03867& 0.04105\\ \hline
+50/(48*7)        &  0.00000&-0.01726&54/(48*7)         &  0.000  & 0.01195\\ \hline
+55/(48*7)        &  0.01413& 0.00000&56/(48*7)         & -0.02892&-0.02642\\ \hline
+57/(48*7)        &  0.01667& 0.00000&63/(48*7)         &  0.000  &-0.02394\\ \hline
+70/(48*7)        &  0.02683& 0.00971&71/(48*7)         & -0.00849& 0.00000 \\ \hline
+77/(48*7)        & -0.01250&-0.00854&84/(48*7)         & -0.01675& 0.00000  \\ \hline
+126/(48*7)       &  0.00000& 0.00886&140/(48*7)        &  0.000  & 0.00866 \\ \hline
+154/(48*7)       &  0.00908& 0.00000&161/(48*7)        &  0.000  & 0.00983\\ \hline
+	\end{tabular}
+\caption{Frequencies and the estimated coefficients of the significant terms in the trigonometric regression modelling at BspAlb
+     }
+	\label{table:2}
+\end{table}
+
+As shown in \figref{fig:6}, the ACF and PACF of residuals for the above fitting (with \eqnref{eq:2-7} and \tabref{table:2}) are examined again. Even though the periodicity of spikes in PACF was still apparent, the correlational (autocorrelational) analyses in \figref{fig:6} presented a preferable performance for current residuals comparing with the top half of \figref{fig:3}, since the majority of correlations reduced to 0.3. As suggested before, to obtain a white noise for the errors, a seasonal autoregressive integrated moving average (SARIMA) model should be fitted for this stationary residual series.
+\begin{figure}[t]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Alap-res6.pdf}\\
+\caption{Residuals after the fitting model (see \eqnref{eq:2-7} and \tabref{table:2}) at BspAlb: (a)autocorrelogram; (b)partial autocorrelogram.
+	}
+	\label{fig:6}
+\end{figure}
+
+\section{The Seasonal ARMA Modelling For the Residuals}
+As obtained from the previous analyses, the tendency of electricity demand at each BSP can be described as the integration of a trigonometric regression model and a SARIMA model, which can be formalized as
+\begin{equation}
+\label{eq:2-8}
+\begin{aligned}
+X_{t}= \hat{X_{t}} + y_{t}
+\end{aligned}
+\end{equation}
+where the $\hat{X_{t}}$ is the trigonometric regression model shown in \eqnref{eq:2-7} and \tabref{table:2} and the residuals $y_{t}$ were fitted by a $SARIMA(p, 0, q)(P, 0, Q)_{s}$ modelling. Then $X_{t}$ represented the prediction series for the electricity demand at a bulk supply point.
+
+There is no agreed notation on how to represent the backward shift (or lag) operator. In this dissertation, the term B was used to refer this formal operation, whose function can be used for prediction and displayed as $y_{t-1}$ =B*$y_{t}$. As suggested by \citet[chap. 7]{cowpertwait2009introductory}, through the utilisation of the backward shift operator B a proper seasonal autoregressive integrated moving average $SARIMA(p, d, q)(P, D, Q)_{s}$ modelling can be represented about the residuals $y_{t}$ = $X_{t}$ - $\hat{X_{t}}$ as follow:
+\begin{equation}
+\label{eq:2-9}
+\begin{aligned}
+\phi_{p}(B)\Phi_{P}(B^{s})(1-B)^{d}(1-B^{s})^{D}y_{t}=\theta_{q}(B)\Theta_{Q}(B^{s}) \epsilon_{t},
+\end{aligned}
+\end{equation}
+where the error terms $\epsilon_{t}$ is assumed to be independent identically distributed random variables (i. i. d.) sampled from a normal distribution with zero mean, i.e., $\epsilon_{t}\sim N(0, \sigma^{2})$ where $\sigma^{2}$ is the variance.
+
+There would be a catastrophe in the prediction caused by taking a difference because the tendency is limited. Thus, after determining the $d$ = $D$ = $0$ in the seasonal autoregressive integrated moving average $SARIMA(p, d, q)(P, D, Q)_{s}$ model, the purpose of studying became to find an appropriate seasonal ARMA model instead of a SARIMA model for the residuals of the prior trigonometric regression modelling. Therefore, \eqnref{eq:2-8} can be simplified as follows:
+\begin{equation}
+\label{eq:2-10}
+\begin{aligned}
+\phi_{p}(B)\Phi_{P}(B^{s})y_{t}=\theta_{q}(B)\Theta_{Q}(B^{s}) \epsilon_{t}.
+\end{aligned}
+\end{equation}
+Moreover, its extended formula is
+\begin{equation}
+\label{eq:2-11}
+\begin{aligned}
+(1-\phi_{1}B-\phi_{2}B^{2}-\dots-\phi_{p}B^{p})(1-\Phi_{1}B^{s}-\Phi_{2}B^{2*s}-\dots -\Phi_{P}B^{P*s})y_{t}= \\ (1-\theta_{1}B-\theta_{2}B^{2}-\dots-\theta_{q}B^{q})(1-\Theta_{1}B^{s}-\Theta_{2}B^{2*s}-\dots -\Theta_{Q}B^{Q*s})\epsilon_{t}
+\end{aligned}
+\end{equation}
+where B is the backward shift operator. Besides, if the modelling is completed, there would be no correlations between the error terms $\epsilon_{t}$ and the error terms can be proofed as a white noise.
+
+To begin the process of fitting a seasonal ARMA model, parameters $p$, $q$, $s$, $P$ and $Q$ can be initialized by ACF and PACF plots in \figref{fig:6}. These considerable spikes illustrated an exponential decay in the seasonal lags; significant spikes are , at lags $48$, $48*2$, $48*3$, $\dots$ for both the ACF and PACF, which suggested a seasonal $ARMA(1,1)_{48}$ term. Also, single significant spikes at lag 1 of both the ACF and PACF plots indicated an additional $ARMA(1,1)$ term. On the other hand, the Akaike information criterions (AICs) for the residuals under $SARIMA(1,0,1)(1,0,1)_{48}$ modelling are compared in \tabref{table:3} and the corresponding R codes are shown in \appref{app:bspalb-codes}, \secref{sec:app-bspalb-arma}. Thereby, the seasonal $ARIMA(1,0,1)(1,0,1)_{48}$ model was assumed according to the ACF and PACF plots and the AICs
+\begin{table}[H]
+\centering
+\begin{tabular}{| r | r | r | r | r | }
+		\hline
+		(p, 0, q)$\diagdown$(P, 0, Q) & (0, 0, 0) & (1, 0, 0) & (0, 0, 1) & (1, 0, 1) \\ \hline
+		(0, 0, 0) & 242143.60 & 180833.00 & 203459.40 &  178255.80 \\ \hline
+		(1, 0, 0) &  59944.16 &  53336.01 &  54920.39 &   44614.78 \\ \hline
+		(0, 0, 1) & 163585.70 & 126370.80 & 139810.80 &  121526.10 \\ \hline
+		(1, 0, 1) &  57446.14 &  47662.53 &  50511.97 &   35761.42\\ \hline
+	\end{tabular}
+\caption{The AICs of the models under the $SARIMA(1,0,1)(1,0,1)_{48}$
+     }
+	\label{table:3}
+\end{table}
+
+
+\begin{figure}[t]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Alap-arimares1.pdf}\\ 
+	\caption{Errors after simulating the $SARIMA(1,0,1)(1,0,1)_{48}$ model to the residuals at BspAlb: acf and pacf in all lags and lower lags.
+	}
+	\label{fig:7}
+\end{figure}
+After fitting a trigonometric regression model and a $SARIMA(1,0,1)(1,0,1)_{48}$ residuals, the errors are illustrated in \figref{fig:7}. It is obvious that the significant spikes at lag $48$, $48*2$, $48*3$, $\dots$ in both the ACF and PACF plots indicated that some additional seasonal terms need to be added. This result was obtained by the comparisons between AICs of distinct SARIMA models, whereas it is a time consuming procedure in R. The calculations of AICs was oversize and running background of R was exceeded later, when the parameter p over 3 were substituted into the $SARIMA(p ,0 , q)(P, 0, Q)_{s}$ model. To overcome this problem and accelerate the running processes, the logarithm of likelihood of the seasonal ARMA modelling were outputted by the use of a simplified method "CSS" in function arima(). And as referred by\citet{burnham2004multimodel}, the calculation of AICs can be replaced by an approximated formula $AIC$ = $2* k$ - $2*log(likelihood)$ where k is the number of total parameters including intercept and $\sigma^{2}$, which is $k=p+q+P+Q+2$ for a $SARIMA(p ,0 , q)(P, 0, Q)_{s}$ model. As shown in \appref{app:bspalb-codes}, \secref{sec:app-bspalb-arma}, the residual R codes for simulating the optimal seasonal ARMA model were designed for estimating parameters. Nevertheless, there will be an error caused by this method.
+
+For example, through this methodology the AIC of the $SARIMA(3,0,1)(1,0,1)_{48}$ model was computed as 33718.71, but the AIC without using method "CSS" was 33692.33 ( $<$ 33718.71) where the relative R codes was attached in \appref{app:bspalb-codes}, \secref{sec:app-bspalb-arma}. The AIC of the modelling $SARIMA(4,0,1)(1,0,1)_{48}$ was produced as $33566.8$, which is smaller than either of the AICs calculated in above two ways. This error should be considered for a further study, but it has no impact on exploring the optimal SARIMA modelling. While the AIC for the $SARIMA(5,0,1)(1,0,1)_{48}$ model was $33630.15$ which was slightly higher than the previous model. Other models were also researched with AR terms as well, but none of that gave a smaller AIC value. Due to a lower AIC should be chosen, the AR term should be set as 4. Based on the p equaling 4, the q was then started from 1 and increased gradually. The AICs of the $SARIMA(4,0,2)(1,0,1)_{48}$ modelling and the $SARIMA(4,0,3)(1,0,1)_{48}$ modelling were 33566.57 and 33566.81, respectively. Thus, it was considered that the MA term could be set as 2. Similarly, both the seasonal AR term P and seasonal MA term Q was produced as 5; and hence the modified model was considered as the $SARIMA(4,0,2)(5,0,5)_{48}$ by following the R codes in \appref{app:bspalb-codes}, \secref{sec:app-bspalb-arma}.
+
+With respect to this optimal seasonal ARMA, the residual tests including time series of the standardized residuals, ACF plot and Ljung-Box test are illustrated in \figref{fig:8}. As illustrated above, the P-values of the errors of $SARIMA(4,0,2)(5,0,5)_{48}$ fitting are larger than 0.5 in the Ljung-Box tests which demonstrated that the residuals had no remaining autocorrelations at the significant level 0.5.
+\begin{figure}[H]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Al-arimares5-tsdiag}\\
+	\caption{Tests for the errors after simulating the $SARIMA(4,0,2)(5,0,5)_{48}$ model to the residuals at BspAlb.
+	}
+	\label{fig:8}
+\end{figure}
+
+The ACF and PACF plots for the error series were displayed specifically in \figref{fig:9}. The correlation coefficients in ACF except lag=0, which exceeded the $95\%$ confidence interval (above the dashed lines in the upper left of the figure), were observed less than $5\%$. Besides,it was noticeable that the PACF plot seemed to be unsatisfied, whereas a reason was observed as the partial autocorrelations are between -0.04 and 0.08. Hence, the error series was a white noise.
+\begin{figure}[t]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Alap-arimares5.pdf}\\ 
+	\caption{The errors after simulating the $SARIMA(4,0,2)(5,0,5)_{48}$ model to the residuals at BspAlb: acf and pacf in all lags and lower lags.
+	}
+	\label{fig:9}
+\end{figure}
+
+According to the codes in \appref{app:bspalb-codes}, \secref{sec:app-bspalb-arma}, the coefficients of the fitted $SARIMA(4,0,2)(5,0,5)_{48}$ modelling were estimated as
+\begin{equation}
+\label{eq:2-12}
+\begin{aligned}
+&p=4; \quad \quad P=5;\quad \quad q=2; \quad \quad Q=5; \quad \quad s=48;\\
+&\phi_{1}=0.0228; \quad\phi_{2}=0.8113; \quad \phi_{3}=0.0130; \quad \phi_{4}=0.0094;\\
+&\theta_{1}=0.5847; \quad\theta_{2}=-0.1853\\
+&\Phi_{1}=0.7808; \quad\Phi_{2}=0.1102; \quad\Phi_{3}=-0.1964; \quad\Phi_{4}=-0.1345; \quad\Phi_{5}=0.3812;\\
+&\Theta_{1}=-0.5975;\quad\Theta_{2}=-0.1327;\quad \Theta_{3}=0.1595;\quad\Theta_{4}=0.1712;\quad\Theta_{5}=-0.3058.\\
+\end{aligned}
+\end{equation}
+
+By substituting these coefficients into \eqnref{eq:2-11}, the formula for the $SARIMA(4,0,2)(5,0,5)_{48}$ modelling was summarized as shown in the equation below:
+\begin{equation}
+\label{eq:2-13}
+\begin{aligned}
+(1-0.0228B-0.8113B^{2}-0.0130B^{3}-0.0094B^{4})*\\
+(1-0.7808B^{48}-0.1102B^{2*48}+0.1964B^{3*48}+0.1345B^{4*48}-0.3812B^{5*48})y_{t}\\
+=(1-0.5847B+0.1853B^{2})*\\
+(1+0.5975B^{48}+ 0.1327B^{2*48}-0.1595B^{3*48}-0.1712B^{4*48}+0.3058B^{5*48})\epsilon_{t},
+\end{aligned}
+\end{equation}
+and the residuals were deduced from $y_{t}$ = $X_{t}$ - $\hat{X_{t}}$.
+
+Eventually, the electricity demand of the substations at the BspAlb can be predicted by the optimal trigonometric regression modelling represented in \eqnref{eq:2-7} and \tabref{table:2} and the $SARIMA(4,0,2)(5,0,5)_{48}$ residuals with \eqnref{eq:2-13}.
+
+\chapter{Comparisons on Periodicities of BspAlb and BspArn}
+\label{chap:comparison}
+\section{Analyses of BspArn Series}
+\label{sec:bsparn-analysis}
+The demand time series of electricity at the BspArn is visualised in \figref{fig:10}.
+\begin{figure}[H]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Arts}\\
+	\caption{BspArn series: time plot.
+	}
+	\label{fig:10}
+\end{figure}
+What was striking about the original plot for the BspArn series was the peak at 20 probably was caused by accident and therefore a threshold value was guessed as 5. Replacing the values which exceed 5 or equal to 0 as the mean 2.248372, the replaced series was visualized again to see if the result is satisfactory.
+\begin{figure}[H]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Arts-ap}\\
+	\caption{BspArn series: (a)time plot; (b) autocorrelogram; (c) partial autocorrelogram.
+	}
+	\label{fig:11}
+\end{figure}
+
+As referred before, similarly it was needed to process seasonal adjustments for the BspArn series. As observed from the plots in \figref{fig:11}, the largest period of the BspArn Series was assumed to be a week including $48*7$ dots. By P-value tests the trigonometric components was modelled for the BspArn series with following frequencies:
+\begin{equation}
+\label{eq:3-1}
+\begin{aligned}
+&\hat{f}_{1}=1/(48*7),\quad \dots, \quad\hat{f}_{16}=16/(48*7), \quad\hat{f}_{17}=19/(48*7),\quad\dots,\quad\hat{f}_{21}=23/(48*7),\\
+&\hat{f}_{22}=26/(48*7),\quad\dots,\quad \hat{f}_{33}=37/(48*7), \quad\hat{f}_{34}=41/(48*7),\quad\dots,\quad\hat{f}_{36}=43/(48*7),\\
+&\hat{f}_{37}=47/(48*7),\quad\dots,\quad\hat{f}_{40}=50/(48*7),\\
+&\hat{f}_{41}=55/(48*7),\quad\hat{f}_{42}=56/(48*7),\quad \hat{f}_{43}=63/(48*7),\quad \hat{f}_{44}=77/(48*7),\\
+&\hat{f}_{45}=84/(48*7),\quad\hat{f}_{46}=91/(48*7),\quad\hat{f}_{47}=98/(48*7),\quad\hat{f}_{48}=112/(48*7),\\
+&\hat{f}_{49}=119/(48*7),\quad\hat{f}_{50}=126/(48*7),\hat{f}_{51}=133/(48*7),\quad\hat{f}_{52}=140/(48*7),\\
+&\hat{f}_{53}=161/(48*7).
+\end{aligned}
+\end{equation}
+
+According to the flowchart shown as \figref{fig:5}, the advantages of spectrum analysis were taken five times and potential frequencies were obtained. By doing the P-value tests again, there are adapted seasonal frequencies $\hat{f}_{j}$ (j=54, $\dots$, 86) as shown below (related codes can be found in \appref{app:bsparn-codes}).
+\begin{equation}
+\label{eq:3-2}
+\begin{aligned}
+&\hat{f}_{54}=1/(48*7*167),\quad\hat{f}_{55}=1/(48*7*112),\quad\hat{f}_{56}=1/(48*7*84), \\
+&\hat{f}_{57}=1/(48*7*67), \quad\hat{f}_{58}=1/(48*7*56), \quad\hat{f}_{59}=1/(48*7*48), \\ &\hat{f}_{60}=1/(48*7*42),\quad\hat{f}_{61}=1/(48*7*37), \quad\hat{f}_{62}=1/(48*7*33), \\
+&\hat{f}_{63}=1/(48*7*30),\quad \hat{f}_{64}=1/(48*7*28), \quad \hat{f}_{65}=1/(48*7*26), \\ &\hat{f}_{66}=1/(48*7*24),\quad\hat{f}_{67}=1/(48*7*22),\quad \dots,\quad \hat{f}_{86}=1/(48*7*3).\\
+\end{aligned}
+\end{equation}
+
+Hence, the fitted trigonometric regression model for the electricity demand at the BspArn was formalized as
+\begin{equation}
+\label{eq:3-3}
+\begin{aligned}
+\hat{X_{t}}= 2.2533147 +\sum^{91}_{i=1} a_{i}\cos(2\pi t\hat{f}_{i}) +\sum^{91}_{1} b_{i}\sin(2\pi t\hat{f}_{i})+y_{t}.
+\end{aligned}
+\end{equation}
+
+And also the significant frequencies with estimated coefficients are increasedly displayed in the next page.
+\begin{table}
+\centering
+\begin{tabular}{| c | c | c | c | c | c |}
+		\hline
+        frequency($\hat{f}_{i}$) & $a_{i}$ & $b_{i}$ & frequency($\hat{f}_{i}$) & $a_{i}$ & $b_{i}$\\ \hline
+1/(48 * 167 * 7) &  0.041811 &  0.0661760& 1/(48 * 112 * 7))  &  0.078167 & -0.036901\\ \hline
+1/(48 * 84 * 7)  &  0.039873 & -0.044098 & 1/(48 * 67 * 7))   &  0.080116 & -0.119057\\ \hline
+1/(48 * 56 * 7)  &  0.238452 & -0.395528 & 1/(48 * 48 * 7))   & -0.065442 &  0.349785 \\ \hline
+1/(48 * 42 * 7)  & -0.042929 &  0.141192 & 1/(48 * 37 * 7))   & -0.005034 &  0.027205 \\ \hline
+1/(48 * 33 * 7)  & -0.005264 &  0.042970 & 1/(48 * 30 * 7))   & -0.062648 &  0.070437 \\ \hline
+1/(48 * 28 * 7)  &  0.042760 &  0.027620 & 1/(48 * 26 * 7)    &  0.077557 &  0.062975 \\ \hline
+1/(48 * 24 * 7)  &  0.000    &  0.086915 & 1/(48 * 22 * 7)    &  0.000    &  0.038145 \\ \hline
+1/(48 * 21 * 7)  &  0.026461 &  0.023620 & 1/(48 * 20 * 7)    &  0.080169 &  0.000  \\ \hline
+1/(48 * 19 * 7)  &  0.005350 &  0.000    & 1/(48 * 18 * 7)    &  0.000    &  0.004965 \\ \hline
+1/(48 * 17 * 7)  &  0.047581 & -0.020090 & 1/(48 * 16 * 7)    &  0.022781 &  0.000 \\ \hline
+1/(48 * 15 * 7)  & -0.031656 &  0.000    & 1/(48 * 14 * 7))   &  0.013578 &  0.023753 \\ \hline
+1/(48 * 13 * 7)  & -0.008317 &  0.000    & 1/(48 * 12 * 7)    & -0.004177 &  0.021930 \\ \hline
+1/(48 * 11 * 7)  & -0.008701 & -0.014650 & 1/(48 * 10 * 7)    & -0.012307 &  0.0265141 \\ \hline
+1/(48 * 9 * 7))  & -0.005933 &  0.000    & 1/(48 * 8 * 7)     & -0.014807 & -0.009131 \\ \hline
+1/(48 * 7 * 7)   & -0.008289 &  0.008820 & 1/(48 * 6 * 7)     &  0.000    & -0.007019 \\ \hline
+1/(48 * 5 * 7)   &  0.027698 &  0.003096 & 1/(48 * 4 * 7)     & -0.004095 &  0.006570 \\ \hline
+1/(48 * 3 * 7)   &  0.000    & -0.003089 & 1/(48*7)           &  0.039799 & -0.007065 \\ \hline
+2/(48*7)         &  0.000    & -0.006025 & 3/(48*7)           & -0.007305 &  0.005045  \\ \hline
+4/(48*7)         &  0.005101 &  0.009493 & 5/(48*7)           &  0.005833 &  0.004627  \\ \hline
+6/(48*7)         &  0.000    & -0.010589 & 7/(48*7)           &  0.000    & -0.277500 \\ \hline
+8/(48*7)         &  0.000    & -0.033267 & 9/(48*7)           &  0.000    & -0.023102 \\ \hline
+10/(48*7)        &  0.010265 & -0.009166 & 11/(48*7)          &  0.010415 &  0.000\\ \hline
+12/(48*7)        &  0.016899 &  0.011831 & 13/(48*7)          &  0.022833 &  0.016916 \\ \hline
+14/(48*7)        & -0.078433 & -0.248121 & 15/(48*7)          &  0.014777 &  0.010017 \\ \hline
+16/(48*7)        &  0.006779 &  0.009102 & 19/(48*7)          & -0.005716 &  0.000 \\ \hline
+20/(48*7)        & -0.009012 &  0.008093 & 21/(48*7)          & -0.042551 &  0.066850 \\ \hline
+22/(48*7)        & -0.016329 &  0.006507 & 23/(48*7)          & -0.008143 &  0.004192 \\ \hline
+26/(48*7)        &  0.004044 & -0.010302 & 27/(48*7)          &  0.000    & -0.016485 \\ \hline
+28/(48*7)        &  0.034826 & -0.046596 & 29/(48*7)          &  0.006439 & -0.014443 \\ \hline
+30/(48*7)        &  0.000    & -0.006963 & 31/(48*7)          &  0.004105 &  0.000\\ \hline
+32/(48*7)        &  0.003944 &  0.000    & 33/(48*7)          &  0.007034 &  0.006870 \\ \hline
+34/(48*7)        &  0.012409 &  0.006605 & 35/(48*7)          &  0.016149 & -0.180576  \\ \hline
+36/(48*7)        &  0.010461 &  0.003663 & 37/(48*7)          &  0.005606 &  0.000\\ \hline
+41/(48*7)        & -0.004589 &  0.004433 & 42/(48*7)          &  0.032654 & -0.080530 \\ \hline
+43/(48*7)        & -0.006815 &  0.000    & 47/(48*7)          &  0.000    & -0.005119 \\ \hline
+48/(48*7)        &  0.000    & -0.006595 & 49/(48*7)          &  0.053370 & -0.038591 \\ \hline
+50/(48*7)        &  0.000    & -0.005410 & 55/(48*7)          &  0.004037 &  0.000\\ \hline
+56/(48*7)        &  0.024346 & -0.024734 & 63/(48*7)          &  0.000    & -0.029785 \\ \hline
+77/(48*7)        & -0.014365 &  0.000    & 84/(48*7)          & -0.026712 &  0.000\\ \hline
+91/(48*7)        & -0.009342 & -0.005570 & 98/(48*7)          &  0.000    &  0.004049 \\ \hline
+112/(48*7)       &  0.013365 &  0.000    & 119/(48*7)         &  0.018123 &  0.005610 \\ \hline
+126/(48*7)       &  0.013541 &  0.009340 & 133/(48*7)         &  0.011591 &  0.004950 \\ \hline
+140/(48*7)       &  0.008286 &  0.004667 & 161/(48*7)         &  0.004002 &  0.000\\ \hline
+	\end{tabular}
+\caption{Frequencies and the estimated coefficients of the significant terms in the trigonometric regression modelling at BspArn
+     }
+	\label{table:4}
+\end{table}
+
+Additionally, after the trigonometric regression modelling with \eqnref{eq:3-3} and \tabref{table:4}, the ACF and PACF plots of the residuals are presented in \figref{fig:12}.
+\begin{figure}[H]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Arap-res5}\\
+\caption{Residuals after fitting the model (see \eqnref{eq:3-3} and \tabref{table:4}) to BspArn series:(a) autocorrelogram; (b) partial autocorrelogram.
+	}
+	\label{fig:12}
+\end{figure}
+
+As obtained from \figref{fig:12}, due to the seasonal adjusted process, the correlations between the residuals were reduced. Then a seasonal ARMA modelling was analysed for these residuals. After comparing the AICs of $SARIMA(p,0,q)(P,0,Q)_{48}$ models in \tabref{table:5} where p, q, P and Q were chosen as 0 and 1 individually, the initial seasonal ARMA model for fitting residuals was $SARIMA(1,0,1)(1,0,1)_{48}$. Due to the plots of ACF and PACF in \figref{fig:13}, the parameters in the current seasonal ARMA model should be increased gradually until the AIC became sufficiently small.
+\begin{figure}[t]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Arres+ap-arimares1}\\
+	\caption{Errors after simulating the $SARIMA(1,0,1)(1,0,1)_{48}$ model to the residuals at BspArn: (a)plot; (b) autocorrelogram; (c) partial autocorrelogram.
+	}
+	\label{fig:13}
+\end{figure}
+
+Following the analogous seasonal ARMA modelling process for the BspAlb series in \chapref{chap:bspalb-analysis}, an acceptable seasonal ARMA modelling was obtained as $SARIMA(7,0,6)(5,0,5)_{48}$ by computing the R codes in \appref{app:bsparn-codes} and the AICs of seasonal ARMA models are compared in \tabref{table:5}.
+\begin{table}[H]
+\begin{tabular}{| c | c | c | c | c | c | c | c | c |}		\hline
+		(p, 0, q)$\diagdown$(P, 0, Q)&(0, 0, 0)  &(1, 0, 0) &(0, 0, 1) &(1, 0, 1)& $\dots$   &(5, 0, 1)& $\dots$  &(5, 0, 5) \\ \hline
+		(0, 0, 0)          &  34885.36 &  -34492.75 & -3777.528  & -51034.39  & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+		(0, 0, 1)          & -36366.33 &  -79510.15 & -60339.69  & -99648.96  & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+        (1, 0, 0)          & -89784.84 &  -114849.6 & -104512.9  & -141066.6   & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+		(1, 0, 1)          & -89796.86 & -117875    & -105337.8  &-147648.8   & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+        $\vdots$           & $\ddots$  & $\ddots$   & $\ddots$   & $\vdots$   & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+        (6, 0, 1)          & $\ddots$  & $\ddots$   & $\ddots$   &-148734.6   & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+		(7, 0, 1)          & $\ddots$  & $\ddots$   & $\ddots$   &-148602.7   & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+        (8, 0, 1)          & $\ddots$  & $\ddots$   & $\ddots$   &-148259.2   & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+        (7, 0, 2)          & $\ddots$  & $\ddots$   & $\ddots$   &-148768.4   & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+        $\vdots$           & $\ddots$  & $\ddots$   & $\ddots$   & $\vdots$   & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+		(7, 0, 5)          & $\ddots$  & $\ddots$   & $\ddots$   &-148758     & $\ddots$ & $\ddots$  & $\ddots$ & $\ddots$ \\ \hline
+		(7, 0, 6)          & $\ddots$  & $\ddots$   & $\ddots$   &-148985.3   & $\dots$  &-149565.4  & $\dots$  & -150563.2 \\ \hline
+	\end{tabular}
+\caption{AICs of simulating the SARIMA model to the residuals at BspArn
+    }
+	\label{table:5}
+\end{table}
+
+Nevertheless, as illustrated from the spikes of partial autocorrelation in \figref{fig:14}, the $SARIMA(7,0,6)(5,0,5)_{48}$ model for the residuals could be improved by adding additional AR components.
+\begin{figure}[H]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Arap-arimares5}\\
+	\caption{Errors after simulating the $SARIMA(7,0,6)(5,0,5)_{48}$ model to the residuals at BspArn: acf and pacf in all lags and lower lags.
+	}
+	\label{fig:14}
+\end{figure}
+
+By increasing the parameter p in the $SARIMA(p,0,6)(5,0,5)_{48}$ model, the optimal modelling was obtained as the $SARIMA(20,0,6)(5,0,5)_{48}$. Because of the limited allocation size of R, the model can not be improved further and then the smallest AIC was achieved as -150804.7 for the $SARIMA(20,0,6)(5,0,5)_{48}$ modelling. Finally, to examine the fitting of the $SARIMA(20,0,6)(5,0,5)_{48}$ modelling, the residual tests were derived in R by using function tsdiag(), which include time series of the standardized residuals, ACF plot and Ljung-Box test.
+\begin{figure}[H]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Ar-arimares6-tsdiag}\\
+	\caption{Tests for the errors after simulating the $SARIMA(7,0,6)(5,0,5)_{48}$ model to the residuals at BspArn.
+	}
+	\label{fig:15}
+\end{figure}
+As can be seen from \figref{fig:15}, the conclusion coming from the Ljung-Box test was that the residuals for the $SARIMA(20,0,6)(5,0,5)_{48}$ Modelling was a white noise. Since only the first 50 lags were plotted for the ACF in the middle of \figref{fig:15}, the ACF and PACF plots were comprehensively illustrated in the next page.
+
+Looking at \figref{fig:16}, it is apparent that there are significant partial autocorrelations over the significant level (dotted line). A noticeable neglect was that the range of the partial autocorrelations was reduced to [-0.08,0.05], but the range of the ACF plot was [0,1] since the autocorrelation is 1 at lag 0. Thus, there are no correlations between the residuals, and the residuals of the fitting were accepted as independent.
+\begin{figure}[H]
+	\centering
+	% \includegraphics[width=\linewidth]{1}
+	\includegraphics[scale=0.5, width=10cm]{pic/Arap-arimares6}\\
+	\caption{Errors after simulating the $SARIMA(20,0,6)(5,0,5)_{48}$ model at BspArn: acf and pacf in all lags and lower lags.
+	}
+	\label{fig:16}
+\end{figure}
+
+The following \eqnref{eq:3-4} demonstrated the fitted $SARIMA(20,0,6)(5,0,5)_{48}$ Model, and the estimated coefficients of this modelling were summarised in \eqnref{eq:3-5}.
+\begin{equation}
+\label{eq:3-4}
+\begin{aligned}
+(1-\phi_{1}B-\phi_{2}B^{2}-\dots-\phi_{20}B^{20})(1-\Phi_{1}B^{48}-\Phi_{2}B^{2*48}-\dots -\Phi_{5}B^{5**48})y_{t}=\\
+(1-\theta_{1}B-\theta_{2}B^{2}-\dots-\theta_{6}B^{6})(1-\Theta_{1}B^{48}-\Theta_{2}B^{2*48}-\dots-\Theta_{5}B^{5*48})\epsilon_{t}\\
+\end{aligned}
+\end{equation}
+where
+\begin{equation}
+\label{eq:3-5}
+\begin{aligned}
+&\phi_{1}=0.3552 ;\qquad\phi_{2}=0.4437 ; \qquad\phi_{3}=0.0164 ;  \qquad\phi_{4}=0.3371 ; \qquad \quad\phi_{5}=-0.1073 ; \\
+&\phi_{6}=0.2365 ; \qquad\phi_{7}=-0.2026 ;\quad \phi_{8}= -0.0331;\qquad\phi_{9}=-0.0327 ;\qquad\phi_{10}=-0.0114 ;\\
+&\phi_{11}=-0.0078;\quad \phi_{12}=-0.0068;\quad\phi_{13}= -0.0158 ;\quad\phi_{14}=-0.0124 ;\quad\phi_{15}=-0.0013 ;\\
+&\phi_{16}=-0.013; \quad\phi_{17}=0.0085; \qquad\phi_{18}=0.0043; \quad\phi_{19}=0.0137;  \quad\phi_{20}=0.0125;\\
+&\theta_{1}=0.2106; \quad\theta_{2}=-0.1872; \quad\quad\theta_{3}=-0.0332;\quad\theta_{4}=-0.3618; \quad\theta_{5}=-0.0920;\\ &\theta_{6}=-0.3266;\\
+&\Phi_{1}=0.0514 ;  \quad\Phi_{2}=0.2799;  \qquad\Phi_{3}=0.5638;  \quad\Phi_{4}=-0.2548;  \quad\Phi_{5}=0.3211;\\
+&\Theta_{1}=0.0923; \quad\Theta_
+{2}=-0.1299;  \quad\Theta_{3}=-0.4791;  \quad\Theta_{4}=0.2147 ; \quad\Theta_{5}=-0.2421 .\\
+\end{aligned}
+\end{equation}
+Therefore, the tendency of electricity demand at BspArn can be described as the integration of the trigonometric regression model formalized in \eqnref{eq:3-3} and \tabref{table:4} and the SARIMA model as above.
+
+\section{Comparisons Between BspAlb and BspArn}
+\label{sec:comparison}
+The significant frequencies for electricity demand on substations at the BspAlb and the BspArn are listed in \tabref{table:6} and \tabref{table:7}, respectively. For the halfhourly data on primary substations at BspAlb, the frequencies with no less than 0.1 of coefficients of at least one trigonometric (sinusoidal or cosinusoidal) component were considered as significant. Obviously, the coefficients of term $\cos(2\pi *1/48*t)$ and term $\sin(2\pi *1/48*t)$ were outputted as -1.08441 and -1.64340, respectively. Thus, the 1/48 was the most distributed frequency, and there is a daily periodicity that can be identified in the electricity demand at the BspAlb.
+
+At the same significant level, the meaningful frequencies were obtained as 1/(48 * 67 * 7)), 1/(48 * 56 * 7), 1/(48 * 48 * 7)), 1/(48 * 42 * 7), 1/48 and 2/48 for the BspArn series. The distribution of a frequency is the square sum of the coefficients of both sinusoidal and cosinusoidal terms as calculated in \tabref{table:7} for the BspArn. The maximal square of the modules for the trigonometric terms with a significant frequency is 0.2135 for the frequency 1/(48 * 56 * 7), hence, the electricity demand data of the BspArn displayed a yearly periodicity.
+
+\begin{table}
+\centering
+\begin{tabular}{| c | c | c | }
+		\hline
+		 frequency($\hat{f}$)& the coefficient of $\cos(2\pi *\hat{f}*t)$  & the coefficient of $\sin(2\pi *\hat{f}*t)$  \\ \hline
+1/(48 * 167 * 7) & -0.06080& 0.16267\\ \hline
+1/(48 * 112 * 7) &  0.16120& -0.01207 \\ \hline
+1/(48 * 84 * 7)  &  0.11826&-0.10831\\ \hline
+1/(48 * 67 * 7)  &  0.07070&-0.18086\\ \hline
+1/(48 * 56 * 7)) &  0.54420&-0.76727\\ \hline
+1/(48 * 48 * 7)  & -0.06776& 0.67673 \\ \hline
+1/(48 * 42 * 7)  & -0.12498& 0.37583\\ \hline
+1/(48 * 37 * 7)  & -0.02114& 0.14211 \\ \hline
+1/(48 * 30 * 7)  & -0.12104& 0.14112 \\ \hline
+1/(48 * 28 * 7)  &  0.05632& 0.16654\\ \hline
+1/(48 * 26 * 7)) &  0.27413& 0.08243\\ \hline
+1/(48 * 24 * 7)  & -0.08879& 0.14335\\ \hline
+1/(48 * 22 * 7)  & -0.10698& 0.15269 \\ \hline
+1/(48 * 21 * 7)  &  0.08280& 0.13444\\ \hline
+1/(48 * 20 * 7)  &  0.16316& 0.07958 \\ \hline
+1/(48 * 19 * 7)  &  0.13118& 0.04534\\ \hline
+1/(48*7)         & -0.44200&-0.01528\\ \hline
+2/(48*7)         & -0.20263& 0.00000\\ \hline
+5/(48*7)         &  0.10988&-0.01634\\ \hline
+6/(48*7)         &  0.11717& 0.03683\\ \hline
+7/(48*7)         & -1.08441&-1.64340\\ \hline
+8/(48*7)         &  0.16705& 0.00000\\ \hline
+12/(48*7)        &  0.04111& 0.10714\\ \hline
+13/(48*7)        &  0.09911& 0.16014\\ \hline
+14/(48*7)        & -0.01640&-0.7945 \\ \hline
+15/(48*7)        &  0.07920& 0.10933\\ \hline
+21/(48*7)        & -0.05929& 0.27496\\ \hline
+35/(48*7)        & -0.10643&-0.22327 \\ \hline
+	\end{tabular}
+\caption{Significant seasonal frequencies and their coefficients for BspAlb
+     }
+	\label{table:6}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{| c | c | c | c |}
+		\hline
+		 frequency($\hat{f}$)& the coefficient of $\cos(2\pi *\hat{f}*t)$  & the coefficient of $\sin(2\pi *\hat{f}*t)$  \\ \hline
+1/(48 * 67 * 7))   &  0.080116 & -0.119057 & 0.0206\\ \hline
+1/(48 * 56 * 7)    &  0.238452 & -0.395528 & 0.2135\\ \hline
+1/(48 * 48 * 7))   & -0.065442 &  0.349785 & 0.1267\\ \hline
+1/(48 * 42 * 7)    & -0.042929 &  0.141192 & 0.0217\\ \hline
+7/(48*7)=1/48      &  0.000    & -0.277500 & 0.0773\\ \hline
+14/(48*7)=2/48     & -0.078433 & -0.248121 & 0.0676\\ \hline
+	\end{tabular}
+\caption{Significant seasonal frequencies and their coefficients for BspArn}
+	\label{table:7}
+\end{table}
+The distinctiveness between periodicities of domestic and non-domestic BSPs was explored. The demand for the electricity, which has a daily periodicity, was demonstrated as a domestic load, whereas for a load with the yearly periodicity should be non-domestic comparing the stability of diurnal periodic variation at a domestic BSP. Therefore, there seemed to be that the BspArn series is a non-domestic BSP, but the BspAlb is a domestic BSP.
+
+\chapter{Analysis of Periodicities by the DFT}
+\label{chap:dft-analysis}
+\section{The DFT Procedure for BspAlb}
+\label{sec:dft-bspalb}
+Following the R codes attached in \appref{app:dft-codes}, prominent frequencies and periodicities at the BspAlb were obtained straightforward and ordered by their contributions as following outputs:
+\begin{lstlisting}[language=R,breaklines=true]
+           n       fft         freq       period
+ [1,]      0 752023.54 0.000000e+00          Inf
+ [2,]   2324 109810.55 2.083333e-02    48.000000
+ [3,] 109228 109810.55 9.791667e-01     1.021277
+ [4,]      6  57294.08 5.378657e-05 18592.000000
+ [5,] 111546  57294.08 9.999462e-01     1.000054
+ [6,]   4648  44319.35 4.166667e-02    24.000000
+ [7,] 106904  44319.35 9.583333e-01     1.043478
+ [8,]      7  31095.07 6.275100e-05 15936.000000
+ [9,] 111545  31095.07 9.999372e-01     1.000063
+[10,]    332  24665.62 2.976190e-03   336.000000
+\end{lstlisting}
+
+A major advantage of discrete Fourier transform (DFT) is that the location of significant FFT can be computed in R rapidly by the use of function fft(). After that, the most contributed frequency and periodicity of electricity demand series were identified by \eqnref{eq:1-12} and \eqnref{eq:1-13}, respectively. As observed from the first line of the outputs, the most significant frequency is 0 and corresponds to the infinite periodicity, which meant that there could be no periodicity for the BspAlb series. To estimate the potential periodicity, the second line of the outputs was analysed alternatively and finally a distributed periodicity could be assumed as 48, which was a daily periodicity for the electricity demand series at the BspAlb served by substations. It was identified that this demand series should have a diurnal periodic variation primarily. The assumptions relating to the outputs were subjective and were therefore susceptible to cause bias on the results of periodicities.
+
+\section{The DFT Procedure for BspArn}
+\label{sec:dft-bsparn}
+Homoplastically, a DFT Procedure was done for BspArn in R by following the codes applied in \appref{app:dft-codes}. Again the second line of the outputs for BspArn was analysed and the most significant frequency of the demand series was computed as 0.00005378657 ( = 1/(48*387)), which is a yearly periodicity. In comparison with the periodicities obtained from fitting the data and the FFT procedure, the electricity demand data have daily and yearly periodicities. As referred previously, a factor of uncertainty in the method may be due to the low resolution of frequencies and periodicities. Consequently, it is better to identify periodicities of electricity demand series by modelling the data instead of utilizing the fast discrete Fourier transform (FFT) or the Discrete Fourier Transform (DFT). Nevertheless, the FFT was more convenient for the analysis of the periodicities.
+
+\begin{lstlisting}[language=R,breaklines=true]
+           n       fft         freq       period
+ [1,]      0 250810.38 0.000000e+00          Inf
+ [2,]      6  28165.35 5.378657e-05 18592.000000
+ [3,] 111546  28165.35 9.999462e-01     1.000054
+ [4,]      7  16720.32 6.275100e-05 15936.000000
+ [5,] 111545  16720.32 9.999372e-01     1.000063
+ [6,]   2324  15474.01 2.083333e-02    48.000000
+ [7,] 109228  15474.01 9.791667e-01     1.021277
+ [8,]   4648  14512.30 4.166667e-02    24.000000
+ [9,] 106904  14512.30 9.583333e-01     1.043478
+[10,]  99932  10111.20 8.958333e-01     1.116279
+\end{lstlisting}
+\chapter{Conclusion}%And here is the final chapter showing how clever you are
+\label{chap:conclusion}
+In this dissertation, the two main problems are identifying the hidden periodicities and clarifying the underlying tendencies of the BspAlb and the BspArn electricity demand series. Both of these goals required that the trigonometric regression with seasonal ARMA residuals, should be estimated and more or less be formally described by utilizing the discrete Fourier transform (DFT) and spectrum analysis in R. Until an exponential decay of the residuals was emerged in the ACF plot by R, the estimated degrees and parameters of the seasonal ARMA modelling were determined in comparison with the Akaike information criterions (AICs). Although there is a limitation of the discrete Fourier transform (DFT) caused by the low resolution, the same seasonal periodicities on electricity demand series detected by spectrum analysis and observing optimally fitted model was obtained. These BSPs were distinguished as a domestic or non-domestic load eventually according to the periodicities.
+
+Although there were considerable correlations observed from the ACF plots of both BspAlb and BspArn substations, the Ljung-Box test indicated that the residuals of the assuming model was a white noise. Therefore, generally it seems that the trigonometric regression and seasonal ARMA modelling would be fitted for all of the substation sampling from the supplied database. Overall, according to the seasonal frequencies analysed in the periodogram spectrum estimation, the electricity demand of substations at BspAlb emerged a daily periodicity. On the other hand, this study strengthens that the periodicity of BspArn substation would be yearly, which is included in the daily periodicity. Comparing with the electricity demand for a non-domestic BSP ,it was deduced that the periodicity of a domestic demand on electricity is more prominent.
+
+Due to exceeding the background memory of R, the calculations of coefficients and the optimizations of parameters were limited in the fitting of seasonal ARMA models. Further research should be undertaken to investigate an improved seasonal ARMA modelling with higher parameters by using another computing programs, such as MATLAB, Python or C language. Regardless of the validity of the author's analyses of the data, we can extrapolate the identified studying pattern and the results to research the electricity demands data at another BSP and predict the future demand of electricity. These significant findings on records and predictions of electricity demand can be used for preparing precautionary measures in case of insufficient supply in the future.
+
+%\begin{thebibliography}{999}
+%\bibitem{ANO} A.N.~Other, ....
+%\end{thebibliography}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+\chapter{R Codes for all Substations}
+\label{app:all-substations}
+\begingroup\scriptsize%\footnotesize
+\let\clearpage\relax
+\chaptermark{R Codes for all Substations}
+\begin{lstlisting}[language=R,breaklines=true]
+library("timeDate")
+library("timeSeries")
+ritabig.mts<-readRDS("C:\\Users\\lenovo\\Desktop\\dissertation\\ritabigMts.rds")
+dim(ritabig.mts)
+summary(ritabig.mts[ , "Albion St" ])
+summary(ritabig.mts[ , "Arnside" ])
+\end{lstlisting}
+
+\chapter{R Codes for the BspAlb}
+\label{app:bspalb-codes}
+\begin{lstlisting}[language=R,breaklines=true]
+library("pastecs")
+AlbionSt.ts <- readRDS("C:\\Users\\lenovo\\Desktop\\dissertation\\Electricity\\substations\\Albion_St.rds")
+start(AlbionSt.ts )
+end(AlbionSt.ts )
+plot(AlbionSt.ts)
+length(which(AlbionSt.ts== 0))
+AlbionSt.ts [AlbionSt.ts== 0] <- NA
+flags<- is.na(AlbionSt.ts)
+AlbionSt.ts[flags] <- mean(AlbionSt.ts, na.rm=TRUE)
+\end{lstlisting}
+
+\section{R Codes of the Seasonal Adjusted Process at BspAlb}
+\label{sec:app-bspalb-seasonal}
+\begin{lstlisting}[language=R,breaklines=true]
+#1.visualize the time series
+plot.ts(AlbionSt.ts,main="The electricity demand in the BspAlb substation (per halfhour)")
+adf.test(AlbionSt.ts)
+windows()
+layout(1:2)
+acf(AlbionSt.ts,lag.max = (7*48))
+pacf(AlbionSt.ts,lag.max = (7*48))
+
+#2.stationarize the series #set COS[, i] and SIN[, i] weekly
+SIN <- COS <- matrix(nr = length(AlbionSt.ts), nc = (24*7))
+n <- length(AlbionSt.ts)
+TimeC <- 1:n
+for (i in 1:(24*7))
+{
+COS[, i] <- cos(2 * pi * i * TimeC/(48*7))
+SIN[, i] <- sin(2 * pi * i * TimeC/(48*7))
+}
+#Fitted Model 1
+Al.lm1 <- lm(AlbionSt.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + SIN[, 2 ] + COS[, 3 ] + SIN[, 3 ] + COS[, 4 ] + SIN[, 4 ] + COS[, 5 ] + SIN[, 5 ] + COS[, 6 ] + SIN[, 6 ] + COS[, 7 ] + SIN[, 7 ] + ... + COS[, 163 ] + SIN[, 163 ] + COS[, 164 ] + SIN[, 164 ] )
+summary(Al.lm1)
+Al.lm2 <- lm(AlbionSt.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + COS[, 3 ] + SIN[, 3 ] + COS[, 4 ] + SIN[, 4 ] + COS[, 5 ] + SIN[, 5 ] + COS[, 6 ] + SIN[, 6 ] + COS[, 7 ] + SIN[, 7 ] + COS[, 8 ] + COS[, 9 ] + SIN[, 9 ] + COS[, 10 ] + COS[, 11 ] + SIN[, 11 ] + COS[, 12 ] + SIN[, 12 ] + COS[, 13 ] + SIN[, 13 ] + COS[, 14 ] + SIN[, 14 ] + COS[, 15 ] + SIN[, 15 ] + COS[, 16 ] + SIN[, 16 ] + SIN[, 17 ] + COS[, 18 ] + COS[, 19 ] + SIN[, 19 ] + COS[, 20 ] + COS[, 21 ] + SIN[, 21 ] + COS[, 22 ] + COS[, 23 ] + COS[, 25 ] + SIN[, 25 ] + COS[, 26 ] + SIN[, 26 ] + COS[, 27 ] + SIN[, 27 ] + COS[, 28 ] + SIN[, 28 ] + COS[, 29 ] + SIN[, 29 ] + COS[, 30 ] + SIN[, 30 ] + COS[, 31 ] + COS[, 32 ] + SIN[, 32 ] + COS[, 33 ] + SIN[, 33 ] + COS[, 34 ] + SIN[, 34 ] + COS[, 35 ] + SIN[, 35 ] + COS[, 36 ] + SIN[, 36 ] + COS[, 37 ]  + COS[, 39 ] + COS[, 40 ] + COS[, 41 ] + COS[, 42 ] + COS[, 43 ] + COS[, 44 ] + SIN[, 46 ] + SIN[, 47 ] + SIN[, 48 ] + COS[, 49 ] + SIN[, 49 ] + SIN[, 50 ] + SIN[, 54 ] + COS[, 55 ] + COS[, 56 ] + SIN[, 56 ] + COS[, 57 ] + SIN[, 63 ] + COS[, 70 ] + SIN[, 70 ] + COS[, 71 ] + COS[, 77 ] + SIN[, 77 ] + COS[, 84 ] + SIN[, 126 ] + SIN[, 140 ] + COS[, 154 ] + SIN[, 161 ])
+summary(Al.lm2)
+coef(Al.lm2)
+res1=resid(Al.lm2)
+windows()
+layout(1:2)
+acf(res1,lag.max = (48*7))
+pacf(res1,lag.max = (48*7))
+
+#spikes for residuals
+#spectrum for res
+res1.spec <- spectrum(res1)
+Frequ1=res1.spec$freq
+Spec1=res1.spec$spec
+windows()
+par(mfrow=c(2,1))
+plot(Frequ1, Spec1,main="Spectrum", xlab="Frequency(Hz)",ylab="spectrum(dB)")
+plot(Frequ1[0:20],Spec1[0:20], main="spectrum for the low-frequencies", xlab="Frequency(Hz)",ylab="spectrum(dB)",type = "l")
+#Spec1[which.max(Spec1)]
+#Frequ1[which.max(Spec1)]
+#1/(48*7*56)
+tp1=turnpoints(Spec1)
+spectp1=Spec1[tp1$tppos]
+freqtp1=Frequ1[tp1$tppos]
+cbind(freqtp1[order(spectp1)],spectp1[order(spectp1)])[36400:36444,1]
+(1/(cbind(freqtp1[order(spectp1)],spectp1[order(spectp1)]))[36400:36444,1])/(7*48)
+#56 26 167 7 30 15 112 21 12 4 8 9 33 13 10 5 3 16 18 6 2
+#Fitted Model 2
+Al.lm3 <- lm(AlbionSt.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... + COS[, 84 ] + SIN[, 126 ] + SIN[, 140 ] + COS[, 154 ] + SIN[, 161 ]+ cos(2 * pi *  TimeC/(48*56*7)) +sin(2 * pi *  TimeC/(48*56*7))+ cos(2 * pi *  TimeC/(48*26*7)) +sin(2 * pi *  TimeC/(48*26*7))+ cos(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*167*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*30*7)) +sin(2 * pi *  TimeC/(48*30*7))+ cos(2 * pi *  TimeC/(48*15*7)) +sin(2 * pi *  TimeC/(48*15*7))+ cos(2 * pi *  TimeC/(48*112*7)) +sin(2 * pi *  TimeC/(48*112*7))+ cos(2 * pi *  TimeC/(48*21*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*12*7)) +sin(2 * pi *  TimeC/(48*12*7))+ cos(2 * pi *  TimeC/(48*4*7)) +sin(2 * pi *  TimeC/(48*4*7))+  cos(2 * pi *  TimeC/(48*8*7)) +sin(2 * pi *  TimeC/(48*8*7))+ cos(2 * pi *  TimeC/(48*9*7)) +sin(2 * pi *  TimeC/(48*9*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7))+ cos(2 * pi *  TimeC/(48*13*7)) +sin(2 * pi *  TimeC/(48*13*7))+ cos(2 * pi *  TimeC/(48*10*7)) +sin(2 * pi *  TimeC/(48*10*7))+cos(2 * pi *  TimeC/(48*5*7)) +sin(2 * pi *  TimeC/(48*5*7))+cos(2 * pi *  TimeC/(48*3*7)) +sin(2 * pi *  TimeC/(48*3*7))+cos(2 * pi *  TimeC/(48*16*7)) +sin(2 * pi *  TimeC/(48*16*7))+cos(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*18*7))+cos(2 * pi *  TimeC/(48*6*7)) +sin(2 * pi *  TimeC/(48*6*7))+cos(2 * pi *  TimeC/(48*2*7))+sin(2 * pi *  TimeC/(48*2*7)))
+summary(Al.lm3)
+Al.lm4 <- lm(AlbionSt.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + COS[, 3 ] + SIN[, 3 ] +...+ COS[, 84 ] + SIN[, 126 ] + SIN[, 140 ] + COS[, 154 ] + SIN[, 161 ]+ cos(2 * pi *  TimeC/(48*56*7)) +sin(2 * pi *  TimeC/(48*56*7))+ cos(2 * pi *  TimeC/(48*26*7)) +sin(2 * pi *  TimeC/(48*26*7))+ cos(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*167*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*30*7)) +sin(2 * pi *  TimeC/(48*30*7))+ cos(2 * pi *  TimeC/(48*15*7)) +sin(2 * pi *  TimeC/(48*15*7))+ cos(2 * pi *  TimeC/(48*112*7)) +sin(2 * pi *  TimeC/(48*112*7))+ cos(2 * pi *  TimeC/(48*21*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*12*7)) +sin(2 * pi *  TimeC/(48*12*7))+ cos(2 * pi *  TimeC/(48*4*7)) +sin(2 * pi *  TimeC/(48*4*7))+ cos(2 * pi *  TimeC/(48*8*7)) +sin(2 * pi *  TimeC/(48*8*7))+ cos(2 * pi *  TimeC/(48*9*7)) +sin(2 * pi *  TimeC/(48*9*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7))+ cos(2 * pi *  TimeC/(48*13*7)) +sin(2 * pi *  TimeC/(48*13*7))+ cos(2 * pi *  TimeC/(48*10*7)) +sin(2 * pi *  TimeC/(48*10*7))+cos(2 * pi *  TimeC/(48*5*7)) +cos(2 * pi *  TimeC/(48*16*7)) +sin(2 * pi *  TimeC/(48*16*7))+cos(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*18*7))+sin(2 * pi *  TimeC/(48*6*7))+sin(2 * pi *  TimeC/(48*2*7)))
+summary(Al.lm4)
+res2=resid(Al.lm4)
+windows()
+layout(1:2)
+acf(res2,lag.max = (48*7))
+pacf(res2,lag.max = (48*7))
+
+#spectrum for res2
+res2.spec <- spectrum(res2)
+Frequ2=res2.spec$freq
+Spec2=res2.spec$spec
+tp2=turnpoints(Spec2)
+spectp2=Spec2[tp2$tppos]
+freqtp2=Frequ2[tp2$tppos]
+cbind(freqtp2[order(spectp2)],spectp2[order(spectp2)])
+1/(cbind(freqtp2[order(spectp2)],spectp2[order(spectp2)])[36400:36444,1])/(48*7)
+#48 67 24 28 22
+#Fitted Model 3
+Al.lm5 <- lm(AlbionSt.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... +cos(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*18*7))+sin(2 * pi *  TimeC/(48*6*7))+ sin(2 * pi *  TimeC/(48*2*7))+cos(2 * pi *  TimeC/(48*48*7)) +sin(2 * pi *  TimeC/(48*48*7))+ cos(2 * pi *  TimeC/(48*67*7)) +sin(2 * pi *  TimeC/(48*67*7))+ cos(2 * pi *  TimeC/(48*24*7)) +sin(2 * pi *  TimeC/(48*24*7))+ cos(2 * pi *  TimeC/(48*28*7)) +sin(2 * pi *  TimeC/(48*28*7)) + cos(2 * pi *  TimeC/(48*22*7)) +sin(2 * pi *  TimeC/(48*22*7)))
+summary(Al.lm5)
+res3=resid(Al.lm5)
+
+#spectrum for res3
+res3.spec <- spectrum(res3)
+Frequ3=res3.spec$freq
+Spec3=res3.spec$spec
+tp3=turnpoints(Spec3)
+spectp3=Spec3[tp3$tppos]
+freqtp3=Frequ3[tp3$tppos]
+cbind(freqtp3[order(spectp3)],spectp3[order(spectp3)])
+1/(cbind(freqtp3[order(spectp3)],spectp3[order(spectp3)])[36400:36439,1])/(48*7)
+#42 84 19
+#Fitted Model 4
+Al.lm6 <- lm(AlbionSt.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... + cos(2 * pi *  TimeC/(48*24*7)) +sin(2 * pi *  TimeC/(48*24*7))+ cos(2 * pi *  TimeC/(48*28*7)) +sin(2 * pi *  TimeC/(48*28*7)) + cos(2 * pi *  TimeC/(48*22*7)) +sin(2 * pi *  TimeC/(48*22*7))+cos(2 * pi *  TimeC/(48*42*7))+sin(2 * pi *  TimeC/(48*42*7))+cos(2 * pi *  TimeC/(48*84*7))+sin(2 * pi *  TimeC/(48*84*7))+cos(2 * pi *  TimeC/(48*19*7))+sin(2 * pi *  TimeC/(48*19*7)))
+summary(Al.lm6)
+res4=resid(Al.lm6)
+
+#spectrum for res4
+res4.spec <- spectrum(res4)
+Frequ4=res4.spec$freq
+Spec4=res4.spec$spec
+tp4=turnpoints(Spec4)
+spectp4=Spec4[tp4$tppos]
+freqtp4=Frequ4[tp4$tppos]
+cbind(freqtp4[order(spectp4)],spectp4[order(spectp4)])
+1/(cbind(freqtp4[order(spectp4)],spectp4[order(spectp4)])[36400:36437,1])/(48*7)
+#37 20
+#Fitted Model 5
+Al.lm7 <- lm(AlbionSt.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... +cos(2 * pi *  TimeC/(48*42*7))+sin(2 * pi *  TimeC/(48*42*7))+cos(2 * pi *  TimeC/(48*84*7))+sin(2 * pi *  TimeC/(48*84*7))+cos(2 * pi *  TimeC/(48*19*7))+sin(2 * pi *  TimeC/(48*19*7))+cos(2 * pi *  TimeC/(48*37*7))+sin(2 * pi *  TimeC/(48*37*7))+cos(2 * pi *  TimeC/(48*20*7))+sin(2 * pi *  TimeC/(48*20*7)))
+summary(Al.lm7)
+Al.lm8 <- lm(AlbionSt.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + ... + COS[, 154 ] + SIN[, 161 ]+ cos(2 * pi *  TimeC/(48*56*7)) +sin(2 * pi *  TimeC/(48*56*7))+ cos(2 * pi *  TimeC/(48*26*7)) +sin(2 * pi *  TimeC/(48*26*7))+ cos(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*30*7)) +sin(2 * pi *  TimeC/(48*30*7))+ cos(2 * pi *  TimeC/(48*15*7)) + cos(2 * pi *  TimeC/(48*112*7)) +sin(2 * pi *  TimeC/(48*112*7))+ cos(2 * pi *  TimeC/(48*21*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*12*7)) +sin(2 * pi *  TimeC/(48*12*7))+ cos(2 * pi *  TimeC/(48*4*7)) +sin(2 * pi *  TimeC/(48*4*7))+ cos(2 * pi *  TimeC/(48*8*7)) +sin(2 * pi *  TimeC/(48*8*7))+ cos(2 * pi *  TimeC/(48*9*7)) +sin(2 * pi *  TimeC/(48*9*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7))+ cos(2 * pi *  TimeC/(48*13*7)) +sin(2 * pi *  TimeC/(48*13*7))+ cos(2 * pi *  TimeC/(48*10*7)) +sin(2 * pi *  TimeC/(48*10*7))+cos(2 * pi *  TimeC/(48*5*7)) +cos(2 * pi *  TimeC/(48*16*7)) +sin(2 * pi *  TimeC/(48*16*7))+cos(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*6*7)) + cos(2 * pi *  TimeC/(48*48*7)) +sin(2 * pi *  TimeC/(48*48*7))+ cos(2 * pi *  TimeC/(48*67*7)) +sin(2 * pi *  TimeC/(48*67*7))+ cos(2 * pi *  TimeC/(48*24*7)) +sin(2 * pi *  TimeC/(48*24*7))+ cos(2 * pi *  TimeC/(48*28*7)) +sin(2 * pi *  TimeC/(48*28*7)) + cos(2 * pi *  TimeC/(48*22*7)) +sin(2 * pi *  TimeC/(48*22*7))+cos(2 * pi *  TimeC/(48*42*7))+sin(2 * pi *  TimeC/(48*42*7))+cos(2 * pi *  TimeC/(48*84*7))+sin(2 * pi *  TimeC/(48*84*7))+cos(2 * pi *  TimeC/(48*19*7))+sin(2 * pi *  TimeC/(48*19*7))+cos(2 * pi *  TimeC/(48*37*7))+sin(2 * pi *  TimeC/(48*37*7))+cos(2 * pi *  TimeC/(48*20*7))+sin(2 * pi *  TimeC/(48*20*7)))
+summary(Al.lm8)
+res5=resid(Al.lm8)
+#3.plot ACF/PACF charts and find optimal parameters
+windows()
+layout(1:2)
+acf(res5,lag.max = (48*7))
+pacf(res5,lag.max = (48*7))
+
+#spectrum for res5
+res5.spec <- spectrum(res5)
+Frequ5=res5.spec$freq
+Spec5=res5.spec$spec
+tp5=turnpoints(Spec5)
+spectp5=Spec5[tp5$tppos]
+freqtp5=Frequ5[tp5$tppos]
+cbind(freqtp5[order(spectp5)],spectp5[order(spectp5)])
+1/(cbind(freqtp5[order(spectp5)],spectp5[order(spectp5)])[36300:36435,1])/(48*7)
+#17
+#Fitted Model 6
+Al.lm9 <- lm(AlbionSt.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + COS[, 3 ] + SIN[, 3 ] +... + cos(2 * pi *  TimeC/(48*20*7))+sin(2 * pi *  TimeC/(48*20*7))+ cos(2 * pi *  TimeC/(48*17*7))+sin(2 * pi *  TimeC/(48*17*7)))
+summary(Al.lm9)
+Al.lm10 <- lm(AlbionSt.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + COS[, 3 ] + SIN[, 3 ] + COS[, 4 ] + SIN[, 4 ] + COS[, 5 ] + SIN[, 5 ] + COS[, 6 ] + SIN[, 6 ] + COS[, 7 ] + SIN[, 7 ] + COS[, 8 ] + COS[, 9 ] + SIN[, 9 ] + COS[, 10 ] + COS[, 11 ] + SIN[, 11 ] + COS[, 12 ] + SIN[, 12 ] + COS[, 13 ] + SIN[, 13 ] + COS[, 14 ] + SIN[, 14 ] + COS[, 15 ] + SIN[, 15 ] + COS[, 16 ] + SIN[, 16 ] + SIN[, 17 ] + COS[, 18 ] + COS[, 19 ] + SIN[, 19 ] + COS[, 20 ] + COS[, 21 ] + SIN[, 21 ] + COS[, 22 ] + COS[, 23 ] + COS[, 25 ] + SIN[, 25 ] + COS[, 26 ] + SIN[, 26 ] + COS[, 27 ] + SIN[, 27 ] + COS[, 28 ] + SIN[, 28 ] + COS[, 29 ] + SIN[, 29 ] + COS[, 30 ] + SIN[, 30 ] + COS[, 31 ] + COS[, 32 ] + SIN[, 32 ] + COS[, 33 ] + SIN[, 33 ] + COS[, 34 ] + SIN[, 34 ] + COS[, 35 ] + SIN[, 35 ] + COS[, 36 ] + SIN[, 36 ] + COS[, 37 ]  + COS[, 39 ] + COS[, 40 ] + COS[, 41 ] + COS[, 42 ] + COS[, 43 ] + COS[, 44 ] + SIN[, 46 ] + SIN[, 47 ] + SIN[, 48 ] + COS[, 49 ] + SIN[, 49 ] + SIN[, 50 ] + SIN[, 54 ] + COS[, 55 ] + COS[, 56 ] + SIN[, 56 ] + COS[, 57 ] + SIN[, 63 ] + COS[, 70 ] + SIN[, 70 ] + COS[, 71 ] + COS[, 77 ] + SIN[, 77 ] + COS[, 84 ] + SIN[, 126 ] + SIN[, 140 ] + COS[, 154 ] + SIN[, 161 ]+ cos(2 * pi *  TimeC/(48*56*7)) +sin(2 * pi *  TimeC/(48*56*7))+ cos(2 * pi *  TimeC/(48*26*7)) +sin(2 * pi *  TimeC/(48*26*7))+ cos(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*30*7)) +sin(2 * pi *  TimeC/(48*30*7))+ cos(2 * pi *  TimeC/(48*15*7)) + cos(2 * pi *  TimeC/(48*112*7)) +sin(2 * pi *  TimeC/(48*112*7))+ cos(2 * pi *  TimeC/(48*21*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*12*7)) +sin(2 * pi *  TimeC/(48*12*7))+ cos(2 * pi *  TimeC/(48*4*7)) +sin(2 * pi *  TimeC/(48*4*7))+ cos(2 * pi *  TimeC/(48*8*7)) +sin(2 * pi *  TimeC/(48*8*7))+ cos(2 * pi *  TimeC/(48*9*7)) +sin(2 * pi *  TimeC/(48*9*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7))+ cos(2 * pi *  TimeC/(48*13*7)) +sin(2 * pi *  TimeC/(48*13*7))+ cos(2 * pi *  TimeC/(48*10*7)) +sin(2 * pi *  TimeC/(48*10*7))+cos(2 * pi *  TimeC/(48*5*7)) +sin(2 * pi *  TimeC/(48*16*7))+cos(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*6*7)) + cos(2 * pi *  TimeC/(48*48*7)) +sin(2 * pi *  TimeC/(48*48*7))+ cos(2 * pi *  TimeC/(48*67*7)) +sin(2 * pi *  TimeC/(48*67*7))+ cos(2 * pi *  TimeC/(48*24*7)) +sin(2 * pi *  TimeC/(48*24*7))+ cos(2 * pi *  TimeC/(48*28*7)) +sin(2 * pi *  TimeC/(48*28*7)) + cos(2 * pi *  TimeC/(48*22*7)) +sin(2 * pi *  TimeC/(48*22*7))+cos(2 * pi *  TimeC/(48*42*7))+sin(2 * pi *  TimeC/(48*42*7))+cos(2 * pi *  TimeC/(48*84*7))+sin(2 * pi *  TimeC/(48*84*7))+cos(2 * pi *  TimeC/(48*19*7))+sin(2 * pi *  TimeC/(48*19*7))+cos(2 * pi *  TimeC/(48*37*7))+sin(2 * pi *  TimeC/(48*37*7))+cos(2 * pi *  TimeC/(48*20*7))+sin(2 * pi *  TimeC/(48*20*7))+ cos(2 * pi *  TimeC/(48*17*7))+sin(2 * pi *  TimeC/(48*17*7)))
+su=summary(Al.lm10)
+coef(Al.lm10)
+length(coef(Al.lm10))
+res6=resid(Al.lm10)
+\end{lstlisting}
+
+
+\section{R Codes of the Seasonal ARMA Model Fitting at BspAlb}
+\label{sec:app-bspalb-arma}
+\begin{lstlisting}[language=R,breaklines=true]
+#3.plot ACF/PACF charts and find optimal parameters
+windows()
+layout(1:2)
+acf(res6,lag.max = (48*7))
+pacf(res6,lag.max = (48*7))
+
+AIC(arima(res6, order = c(0, 0, 0),seasonal=list(order=c(0,0,0),period=48)))
+# 242143.6
+AIC(arima(res6, order = c(0, 0, 1),seasonal=list(order=c(0,0,0),period=48)))
+# 163585.7
+AIC(arima(res6, order = c(0, 0, 0),seasonal=list(order=c(1,0,0),period=48)))
+# 180833
+AIC(arima(res6, order = c(0, 0, 1),seasonal=list(order=c(1,0,0),period=48)))
+# 126370.8
+AIC(arima(res6, order = c(0, 0, 0),seasonal=list(order=c(0,0,1),period=48)))
+# 203459.4
+AIC(arima(res6, order = c(0, 0, 1),seasonal=list(order=c(0,0,1),period=48)))
+# 139810.8
+AIC(arima(res6, order = c(0, 0, 0),seasonal=list(order=c(1,0,1),period=48)))
+# 178255.8
+AIC(arima(res6, order = c(0, 0, 1),seasonal=list(order=c(1,0,1),period=48)))
+# 121526.1
+AIC(arima(res6, order = c(1, 0, 0),seasonal=list(order=c(0,0,0),period=48)))
+# 59944.16
+AIC(arima(res6, order = c(1, 0, 1),seasonal=list(order=c(0,0,0),period=48)))
+# 57446.14
+AIC(arima(res6, order = c(1, 0, 0),seasonal=list(order=c(1,0,0),period=48)))
+# 53336.01
+AIC(arima(res6, order = c(1, 0, 1),seasonal=list(order=c(1,0,0),period=48)))
+# 47662.53
+AIC(arima(res6, order = c(1, 0, 0),seasonal=list(order=c(0,0,1),period=48)))
+# 54920.39
+AIC(arima(res6, order = c(1, 0, 1),seasonal=list(order=c(0,0,1),period=48)))
+# 50511.97
+AIC(arima(res6, order = c(1, 0, 0),seasonal=list(order=c(1,0,1),period=48)))
+# 44614.78
+AIC(arima(res6, order = c(1, 0, 1),seasonal=list(order=c(1,0,1),period=48)))
+# 35761.42
+
+arimares1=arima(res6,order=c(1,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+#35761.42
+windows()
+par(mfrow=c(2,2))
+acf(resid(arimares1),lag.max = (48*7))
+pacf(resid(arimares1),lag.max = (48*7))
+acf(resid(arimares1),lag.max = (48))
+pacf(resid(arimares1),lag.max = (48))
+
+arimares2=arima(res6,order=c(3,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+as2=arima(res6,order=c(3,0,1),seasonal=list(order=c(1,0,1),period=48),init =coef(arimares2))
+AIC(as2)#33692.33
+2*8-2*(as2$loglik)#33718.71
+arimares2=arima(res6,order=c(4,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*9-2*(arimares2$loglik)#=33568.8
+#arimares2=arima(res6,order=c(5,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+#2*10-2*(arimares2$loglik)=33632.15(p=4)
+windows()
+par(mfrow=c(2,2))
+acf(resid(arimares2),lag.max = (48*7))
+pacf(resid(arimares2),lag.max = (48*7))
+acf(resid(arimares2),lag.max = (48))
+pacf(resid(arimares2),lag.max = (48))
+
+arimares3=arima(res6,order=c(4,0,2),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*10-2*(arimares3$loglik) #=33566.57
+#arimares3=arima(res6,order=c(4,0,3),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+#2*11-2*(arimares3$loglik)=33566.81
+windows()
+par(mfrow=c(2,2))
+acf(resid(arimares3),lag.max = (48*7))
+pacf(resid(arimares3),lag.max = (48*7))
+acf(resid(arimares3),lag.max = (48))
+pacf(resid(arimares3),lag.max = (48))
+
+arimares4=arima(res6,order=c(4,0,2),seasonal=list(order=c(2,0,1),period=48),method="CSS")
+2*11-2*(arimares4$loglik) #33285.57
+arimares4=arima(res6,order=c(4,0,2),seasonal=list(order=c(3,0,1),period=48),method="CSS")
+2*12-2*(arimares4$loglik) #35144.23
+arimares4=arima(res6,order=c(4,0,2),seasonal=list(order=c(4,0,1),period=48),method="CSS")
+2*13-2*(arimares4$loglik) #34739.25
+arimares4=arima(res6,order=c(4,0,2),seasonal=list(order=c(5,0,1),period=48),method="CSS")
+2*14-2*(arimares4$loglik) #31394.91
+windows()
+par(mfrow=c(2,2))
+acf(resid(arimares4),lag.max = (48*7))
+pacf(resid(arimares4),lag.max = (48*7))
+acf(resid(arimares4),lag.max = (48))
+pacf(resid(arimares4),lag.max = (48))
+
+arimares5=arima(res6,order=c(4,0,2),seasonal=list(order=c(5,0,2),period=48),method="CSS")
+2*15-2*(arimares5$loglik) #31069.1
+arimares5=arima(res6,order=c(4,0,2),seasonal=list(order=c(5,0,3),period=48),method="CSS")
+2*16-2*(arimares5$loglik) #31022.68
+arimares5=arima(res6,order=c(4,0,2),seasonal=list(order=c(5,0,4),period=48),method="CSS")
+2*17-2*(arimares5$loglik) #30987.83
+arimares5=arima(res6,order=c(4,0,2),seasonal=list(order=c(5,0,5),period=48),method="CSS")
+2*18-2*(arimares5$loglik) #30594.78
+tsdiag(arimares5)
+windows()
+par(mfrow=c(2,2))
+acf(resid(arimares5),lag.max = (48*7))
+pacf(resid(arimares5),lag.max = (48*7))
+acf(resid(arimares5),lag.max = (48))
+pacf(resid(arimares5),lag.max = (48))
+Box.test(residuals(arimares5),type="Ljung")
+\end{lstlisting}
+
+\chapter{Outputs for BspAlb Series}:
+\label{app:bspalb-outputs}
+\begin{lstlisting}[language=R,breaklines=true]
+Coefficients:
+                                    Estimate Std. Error  t value Pr(>|t|)
+(Intercept)                         6.747820   0.002163 3119.368  < 2e-16 ***
+COS[, 1]                           -0.442000   0.003035 -145.626  < 2e-16 ***
+SIN[, 1]                           -0.015280   0.003035   -5.034 4.80e-07 ***
+COS[, 2]                           -0.202627   0.003035  -66.760  < 2e-16 ***
+COS[, 3]                           -0.026621   0.003035   -8.771  < 2e-16 ***
+SIN[, 3]                           -0.038077   0.003035  -12.545  < 2e-16 ***
+COS[, 4]                            0.054177   0.003035   17.850  < 2e-16 ***
+SIN[, 4]                           -0.057029   0.003035  -18.789  < 2e-16 ***
+COS[, 5]                            0.109881   0.003035   36.203  < 2e-16 ***
+SIN[, 5]                           -0.016339   0.003035   -5.383 7.33e-08 ***
+COS[, 6]                            0.117166   0.003035   38.603  < 2e-16 ***
+SIN[, 6]                            0.036828   0.003035   12.134  < 2e-16 ***
+COS[, 7]                           -1.084405   0.003035 -357.280  < 2e-16 ***
+SIN[, 7]                           -1.643403   0.003035 -541.453  < 2e-16 ***
+COS[, 8]                            0.167055   0.003035   55.040  < 2e-16 ***
+COS[, 9]                            0.099474   0.003035   32.774  < 2e-16 ***
+SIN[, 9]                           -0.034765   0.003035  -11.454  < 2e-16 ***
+COS[, 10]                           0.033450   0.003035   11.021  < 2e-16 ***
+COS[, 11]                           0.021740   0.003035    7.163 7.97e-13 ***
+SIN[, 11]                           0.043979   0.003035   14.490  < 2e-16 ***
+COS[, 12]                           0.041112   0.003035   13.545  < 2e-16 ***
+SIN[, 12]                           0.107140   0.003035   35.300  < 2e-16 ***
+COS[, 13]                           0.099113   0.003035   32.655  < 2e-16 ***
+SIN[, 13]                           0.160140   0.003035   52.761  < 2e-16 ***
+COS[, 14]                          -0.016402   0.003035   -5.404 6.53e-08 ***
+SIN[, 14]                          -0.794524   0.003035 -261.773  < 2e-16 ***
+COS[, 15]                           0.079199   0.003035   26.094  < 2e-16 ***
+SIN[, 15]                           0.109331   0.003035   36.021  < 2e-16 ***
+COS[, 16]                           0.038583   0.003035   12.712  < 2e-16 ***
+SIN[, 16]                           0.059749   0.003035   19.685  < 2e-16 ***
+SIN[, 17]                           0.024536   0.003035    8.084 6.34e-16 ***
+COS[, 18]                          -0.036717   0.003035  -12.097  < 2e-16 ***
+COS[, 19]                          -0.058788   0.003035  -19.369  < 2e-16 ***
+SIN[, 19]                          -0.018047   0.003035   -5.946 2.75e-09 ***
+COS[, 20]                          -0.068931   0.003035  -22.711  < 2e-16 ***
+COS[, 21]                          -0.059289   0.003035  -19.534  < 2e-16 ***
+SIN[, 21]                           0.274961   0.003035   90.591  < 2e-16 ***
+COS[, 22]                          -0.059055   0.003035  -19.457  < 2e-16 ***
+COS[, 23]                          -0.031907   0.003035  -10.512  < 2e-16 ***
+COS[, 25]                           0.011341   0.003035    3.736 0.000187 ***
+SIN[, 25]                          -0.011758   0.003035   -3.874 0.000107 ***
+COS[, 26]                           0.037537   0.003035   12.367  < 2e-16 ***
+SIN[, 26]                          -0.024554   0.003035   -8.090 6.03e-16 ***
+COS[, 27]                           0.053604   0.003035   17.661  < 2e-16 ***
+SIN[, 27]                          -0.044738   0.003035  -14.740  < 2e-16 ***
+COS[, 28]                          -0.039134   0.003035  -12.894  < 2e-16 ***
+SIN[, 28]                          -0.014441   0.003035   -4.758 1.96e-06 ***
+COS[, 29]                           0.046287   0.003035   15.250  < 2e-16 ***
+SIN[, 29]                          -0.039406   0.003035  -12.983  < 2e-16 ***
+COS[, 30]                           0.020924   0.003035    6.894 5.46e-12 ***
+SIN[, 30]                          -0.028980   0.003035   -9.548  < 2e-16 ***
+COS[, 31]                           0.010635   0.003035    3.504 0.000459 ***
+COS[, 32]                           0.011309   0.003035    3.726 0.000195 ***
+SIN[, 32]                           0.019477   0.003035    6.417 1.39e-10 ***
+COS[, 33]                           0.023434   0.003035    7.721 1.17e-14 ***
+SIN[, 33]                           0.038543   0.003035   12.699  < 2e-16 ***
+COS[, 34]                           0.048558   0.003035   15.998  < 2e-16 ***
+SIN[, 34]                           0.039895   0.003035   13.144  < 2e-16 ***
+COS[, 35]                          -0.106428   0.003035  -35.065  < 2e-16 ***
+SIN[, 35]                          -0.223273   0.003035  -73.562  < 2e-16 ***
+COS[, 36]                           0.046284   0.003035   15.249  < 2e-16 ***
+SIN[, 36]                           0.017653   0.003035    5.816 6.04e-09 ***
+COS[, 37]                           0.022763   0.003035    7.500 6.43e-14 ***
+COS[, 39]                          -0.012109   0.003035   -3.990 6.62e-05 ***
+COS[, 40]                          -0.021344   0.003035   -7.032 2.04e-12 ***
+COS[, 41]                          -0.026335   0.003035   -8.677  < 2e-16 ***
+COS[, 42]                           0.033966   0.003035   11.191  < 2e-16 ***
+COS[, 43]                          -0.026269   0.003035   -8.655  < 2e-16 ***
+COS[, 44]                          -0.015212   0.003035   -5.012 5.40e-07 ***
+SIN[, 46]                          -0.010106   0.003035   -3.330 0.000869 ***
+SIN[, 47]                          -0.020345   0.003035   -6.703 2.05e-11 ***
+SIN[, 48]                          -0.029796   0.003035   -9.817  < 2e-16 ***
+COS[, 49]                           0.038672   0.003035   12.741  < 2e-16 ***
+SIN[, 49]                           0.041053   0.003035   13.526  < 2e-16 ***
+SIN[, 50]                          -0.017264   0.003035   -5.688 1.29e-08 ***
+SIN[, 54]                           0.011952   0.003035    3.938 8.23e-05 ***
+COS[, 55]                           0.014131   0.003035    4.656 3.23e-06 ***
+COS[, 56]                          -0.028921   0.003035   -9.529  < 2e-16 ***
+SIN[, 56]                          -0.026417   0.003035   -8.704  < 2e-16 ***
+COS[, 57]                           0.016668   0.003035    5.492 3.99e-08 ***
+SIN[, 63]                          -0.023938   0.003035   -7.887 3.13e-15 ***
+COS[, 70]                           0.026833   0.003035    8.841  < 2e-16 ***
+SIN[, 70]                           0.009708   0.003035    3.199 0.001381 **
+COS[, 71]                          -0.008487   0.003035   -2.796 0.005173 **
+COS[, 77]                          -0.012495   0.003035   -4.117 3.84e-05 ***
+SIN[, 77]                          -0.008543   0.003035   -2.815 0.004881 **
+COS[, 84]                          -0.016754   0.003035   -5.520 3.40e-08 ***
+SIN[, 126]                          0.008865   0.003035    2.921 0.003493 **
+SIN[, 140]                          0.008664   0.003035    2.854 0.004312 **
+COS[, 154]                          0.009079   0.003035    2.991 0.002779 **
+SIN[, 161]                          0.009828   0.003035    3.238 0.001204 **
+cos(2 * pi * TimeC/(48 * 56 * 7))   0.544201   0.003101  175.474  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 56 * 7))  -0.767266   0.003027 -253.485  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 26 * 7))   0.274132   0.003211   85.383  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 26 * 7))   0.082434   0.003200   25.761  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 167 * 7)) -0.060797   0.003096  -19.639  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 167 * 7))  0.162670   0.003027   53.740  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 7 * 7))   -0.014534   0.003046   -4.771 1.84e-06 ***
+cos(2 * pi * TimeC/(48 * 30 * 7))  -0.121035   0.003327  -36.377  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 30 * 7))   0.141124   0.003247   43.465  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 15 * 7))  -0.019309   0.003192   -6.048 1.47e-09 ***
+cos(2 * pi * TimeC/(48 * 112 * 7))  0.161195   0.003103   51.955  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 112 * 7)) -0.012070   0.003019   -3.997 6.41e-05 ***
+cos(2 * pi * TimeC/(48 * 21 * 7))   0.082793   0.003855   21.479  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 21 * 7))   0.134442   0.003817   35.226  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 12 * 7))  -0.010511   0.003050   -3.446 0.000568 ***
+sin(2 * pi * TimeC/(48 * 12 * 7))   0.045824   0.003067   14.940  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 4 * 7))   -0.030019   0.003035   -9.889  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 4 * 7))    0.028333   0.003037    9.329  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 8 * 7))   -0.067522   0.003043  -22.188  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 8 * 7))   -0.016405   0.003059   -5.363 8.21e-08 ***
+cos(2 * pi * TimeC/(48 * 9 * 7))    0.055376   0.003059   18.102  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 9 * 7))    0.018397   0.003055    6.022 1.73e-09 ***
+cos(2 * pi * TimeC/(48 * 33 * 7))   0.024387   0.003149    7.743 9.75e-15 ***
+sin(2 * pi * TimeC/(48 * 33 * 7))   0.044523   0.003122   14.261  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 13 * 7))  -0.049502   0.003049  -16.236  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 13 * 7))  -0.040428   0.003092  -13.075  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 10 * 7))   0.029897   0.003066    9.752  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 10 * 7))   0.041678   0.003067   13.591  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 5 * 7))    0.013182   0.003039    4.338 1.44e-05 ***
+sin(2 * pi * TimeC/(48 * 16 * 7))   0.064896   0.003166   20.498  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 18 * 7))   0.099190   0.003192   31.078  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 6 * 7))   -0.028398   0.003040   -9.342  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 48 * 7))  -0.067755   0.003099  -21.865  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 48 * 7))   0.676731   0.003032  223.212  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 67 * 7))   0.070704   0.003098   22.821  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 67 * 7))  -0.180861   0.003026  -59.761  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 24 * 7))  -0.088791   0.003170  -28.006  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 24 * 7))   0.143352   0.003132   45.765  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 28 * 7))   0.056323   0.003336   16.881  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 28 * 7))   0.166537   0.003235   51.483  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 22 * 7))  -0.106977   0.003745  -28.564  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 22 * 7))   0.152688   0.003671   41.594  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 42 * 7))  -0.124979   0.003101  -40.301  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 42 * 7))   0.375832   0.003045  123.437  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 84 * 7))   0.118257   0.003100   38.152  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 84 * 7))  -0.108306   0.003021  -35.852  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 19 * 7))   0.131184   0.003317   39.548  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 19 * 7))   0.045335   0.003535   12.826  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 37 * 7))  -0.021144   0.003097   -6.828 8.68e-12 ***
+sin(2 * pi * TimeC/(48 * 37 * 7))   0.142109   0.003058   46.472  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 20 * 7))   0.163156   0.003516   46.404  < 2e-16 ***
+sin(2 * pi * TimeC/(48 * 20 * 7))   0.079579   0.003813   20.868  < 2e-16 ***
+cos(2 * pi * TimeC/(48 * 17 * 7))   0.005688   0.003091    1.840 0.065719 .
+sin(2 * pi * TimeC/(48 * 17 * 7))  -0.033117   0.003212  -10.311  < 2e-16 ***
+---
+Signif. codes:  0 '***" 0.001 '**'0.01 '*' 0.05 '.'0.1 '' 1
+
+\end{lstlisting}
+
+
+\chapter{R Codes for BspArn Series}:
+\label{app:bsparn-codes}
+\begin{lstlisting}[language=R,breaklines=true]
+Arnside.ts <- readRDS("C:\\Users\\lenovo\\Desktop\\dissertation\\Electricity\\substations\\Arnside.rds")
+start(Arnside.ts )
+end(Arnside.ts )
+plot(Arnside.ts )
+length(which(Arnside.ts>5))
+length(which(Arnside.ts==0))
+Arnside.ts [Arnside.ts== 0] <- NA
+Arnside.ts [Arnside.ts> 5] <- NA
+flags<- is.na(Arnside.ts)
+Arnside.ts[flags] <- mean(Arnside.ts, na.rm=TRUE)
+
+#1.visualize the ts
+windows()
+layout(1:3)
+plot.ts(Arnside.ts,main="The electricity demand in the Arnside substation (per halfhour)")
+acf(Arnside.ts,lag.max = (7*48))
+pacf(Arnside.ts,lag.max = (7*48))
+
+#2.stationarize the series #set COS[, i] and SIN[, i] weekly
+SIN <- COS <- matrix(nr = length(Arnside.ts), nc = (24*7))
+n <- length(Arnside.ts)
+TimeC <- 1:n
+for (i in 1:(24*7))
+{
+COS[, i] <- cos(2 * pi * i * TimeC/(48*7))
+SIN[, i] <- sin(2 * pi * i * TimeC/(48*7))
+}
+#Fitted Model 1
+Ar.lm1 <- lm(Arnside.ts ~  COS[, 1 ] + SIN[, 1 ] + COS[, 2 ] + SIN[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... + COS[, 160 ] + SIN[, 160 ] + COS[, 161 ] + SIN[, 161 ] + COS[, 162 ] + SIN[, 162 ] + COS[, 163 ] + SIN[, 163 ] + COS[, 164 ] + SIN[, 164 ])
+summary(Ar.lm1)
+Ar.lm2 <- lm(Arnside.ts ~  COS[, 1 ] + SIN[, 1 ] + SIN[, 2 ] + COS[, 3 ] + SIN[, 3 ] + COS[, 4 ] + SIN[, 4 ] + COS[, 5 ] + SIN[, 5 ] + SIN[, 6 ] + SIN[, 7 ] + SIN[, 8 ] + SIN[, 9 ] + COS[, 10 ] + SIN[, 10 ] + COS[, 11 ] + COS[, 12 ] + SIN[, 12 ] + COS[, 13 ] + SIN[, 13 ] + COS[, 14 ] + SIN[, 14 ] + COS[, 15 ] + SIN[, 15 ] + COS[, 16 ] + SIN[, 16 ] + COS[, 19 ] +
+COS[, 20 ] + SIN[, 20 ] + COS[, 21 ] + SIN[, 21 ] + COS[, 22 ] + SIN[, 22 ] + COS[, 23 ] + SIN[, 23 ] + COS[, 26 ] +
+SIN[, 26 ] + SIN[, 27 ] + COS[, 28 ] + SIN[, 28 ] + COS[, 29 ] + SIN[, 29 ] + SIN[, 30 ] + COS[, 31 ] + COS[, 32 ] +
+COS[, 33 ] + SIN[, 33 ] + COS[, 34 ] + SIN[, 34 ] + COS[, 35 ] + SIN[, 35 ] + COS[, 36 ] + SIN[, 36 ] + COS[, 37 ] +
+COS[, 41 ] + SIN[, 41 ] + COS[, 42 ] + SIN[, 42 ] + COS[, 43 ] + SIN[, 47 ] + SIN[, 48 ] + COS[, 49 ] + SIN[, 49 ] +
+SIN[, 50 ] + COS[, 55 ] + COS[, 56 ] + SIN[, 56 ] + SIN[, 63 ] + COS[, 77 ] + COS[, 84 ] + COS[, 91 ] + SIN[, 91 ]  +
+SIN[, 98 ] + COS[, 112 ] + COS[, 119 ] + SIN[, 119 ] + COS[, 126 ] + SIN[, 126 ]+ COS[, 133 ] + SIN[, 133 ] + COS[, 133 ] +
+SIN[, 133 ] + COS[, 140 ] + SIN[, 140] +  COS[, 161 ])
+summary(Ar.lm2)
+res1=resid(Ar.lm2)
+windows()
+layout(1:2)
+acf(res1,lag.max = (48*7))
+pacf(res1,lag.max = (48*7))
+
+#spikes for residuals
+#spectrum for res
+res1.spec <- spectrum(res1)
+Frequ1=res1.spec$freq
+Spec1=res1.spec$spec
+windows()
+par(mfrow=c(2,1))
+plot(Frequ1, Spec1,main="Spectrum", xlab="Frequency(Hz)",ylab="spectrum(dB)")
+plot(Frequ1[0:20],Spec1[0:20], main="spectrum for the low-frequencies", xlab="Frequency(Hz)",ylab="spectrum(dB)",type = "l")
+tp1=turnpoints(Spec1)
+spectp1=Spec1[tp1$tppos]
+freqtp1=Frequ1[tp1$tppos]
+cbind(freqtp1[order(spectp1)],spectp1[order(spectp1)])
+(1/(cbind(freqtp1[order(spectp1)],spectp1[order(spectp1)]))[36700:36777,1])/(7*48)
+#56 28 167 24 26 84 18 21 7 9 15 6 7 10 12 5 19 4 3 8 2 16 22 11 33 13
+#Fitted Model 2
+Ar.lm3 <- lm(Arnside.ts ~  COS[, 1 ] + SIN[, 1 ] + SIN[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... + COS[, 91 ] + SIN[, 91 ]  + SIN[, 98 ] + COS[, 112 ] + COS[, 119 ] + SIN[, 119 ] + COS[, 126 ] + SIN[, 126 ]+ COS[, 133 ] + SIN[, 133 ] + COS[, 133 ] + SIN[, 133 ] + COS[, 140 ] + SIN[, 140] +  COS[, 161 ]+ cos(2 * pi *  TimeC/(48*56*7)) +sin(2 * pi *  TimeC/(48*56*7))+ cos(2 * pi *  TimeC/(48*28*7)) +sin(2 * pi *  TimeC/(48*28*7))+ cos(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*167*7))+ cos(2 * pi *  TimeC/(48*24*7)) +sin(2 * pi *  TimeC/(48*24*7))+ cos(2 * pi *  TimeC/(48*26*7)) +sin(2 * pi *  TimeC/(48*26*7))+ cos(2 * pi *  TimeC/(48*84*7)) +sin(2 * pi *  TimeC/(48*84*7))+ cos(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*18*7))+ cos(2 * pi *  TimeC/(48*21*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*9*7)) +sin(2 * pi *  TimeC/(48*9*7))+  cos(2 * pi *  TimeC/(48*15*7)) +sin(2 * pi *  TimeC/(48*15*7))+ cos(2 * pi *  TimeC/(48*6*7)) +sin(2 * pi *  TimeC/(48*6*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*10*7)) +sin(2 * pi *  TimeC/(48*10*7))+ cos(2 * pi *  TimeC/(48*12*7)) +sin(2 * pi *  TimeC/(48*12*7))+cos(2 * pi *  TimeC/(48*5*7)) +sin(2 * pi *  TimeC/(48*5*7))+cos(2 * pi *  TimeC/(48*19*7)) +sin(2 * pi *  TimeC/(48*19*7))+cos(2 * pi *  TimeC/(48*4*7)) +sin(2 * pi *  TimeC/(48*4*7)) + cos(2 * pi *  TimeC/(48*3*7)) +sin(2 * pi *  TimeC/(48*3*7))+ cos(2 * pi *  TimeC/(48*8*7)) +sin(2 * pi *  TimeC/(48*8*7))+ cos(2 * pi *  TimeC/(48*2*7)) +sin(2 * pi *  TimeC/(48*2*7))+ cos(2 * pi *  TimeC/(48*16*7)) +sin(2 * pi *  TimeC/(48*16*7))+  cos(2 * pi *  TimeC/(48*22*7)) +sin(2 * pi *  TimeC/(48*22*7))+ cos(2 * pi *  TimeC/(48*11*7)) +sin(2 * pi *  TimeC/(48*11*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7))+ cos(2 * pi *  TimeC/(48*13*7)) +sin(2 * pi *  TimeC/(48*13*7)))
+summary(Ar.lm3)
+Ar.lm4 <- lm(Arnside.ts ~  COS[, 1 ] + SIN[, 1 ] + SIN[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... + COS[, 91 ] + SIN[, 91 ]  + SIN[, 98 ] + COS[, 112 ] + COS[, 119 ] + SIN[, 119 ] + COS[, 126 ] + SIN[, 126 ]+ COS[, 133 ] + SIN[, 133 ] + COS[, 133 ] + SIN[, 133 ] + COS[, 140 ] + SIN[, 140] +  COS[, 161 ]+ cos(2 * pi *  TimeC/(48*56*7)) +sin(2 * pi *  TimeC/(48*56*7))+ cos(2 * pi *  TimeC/(48*28*7)) + cos(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*167*7))+ cos(2 * pi *  TimeC/(48*24*7)) +sin(2 * pi *  TimeC/(48*24*7))+ cos(2 * pi *  TimeC/(48*26*7)) +sin(2 * pi *  TimeC/(48*26*7))+ cos(2 * pi *  TimeC/(48*84*7)) +sin(2 * pi *  TimeC/(48*84*7))+ cos(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+sin(2 * pi *  TimeC/(48*9*7))+  cos(2 * pi *  TimeC/(48*15*7)) + cos(2 * pi *  TimeC/(48*6*7)) +sin(2 * pi *  TimeC/(48*6*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*10*7)) +sin(2 * pi *  TimeC/(48*10*7))+ cos(2 * pi *  TimeC/(48*12*7)) +sin(2 * pi *  TimeC/(48*12*7))+cos(2 * pi *  TimeC/(48*5*7)) +cos(2 * pi *  TimeC/(48*19*7)) +sin(2 * pi *  TimeC/(48*19*7))+cos(2 * pi *  TimeC/(48*4*7)) +sin(2 * pi *  TimeC/(48*4*7)) + cos(2 * pi *  TimeC/(48*8*7)) +sin(2 * pi *  TimeC/(48*8*7))+ cos(2 * pi *  TimeC/(48*16*7)) +sin(2 * pi *  TimeC/(48*16*7))+  cos(2 * pi *  TimeC/(48*22*7)) +sin(2 * pi *  TimeC/(48*22*7))+ cos(2 * pi *  TimeC/(48*11*7)) +sin(2 * pi *  TimeC/(48*11*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7))+ cos(2 * pi *  TimeC/(48*13*7)) +sin(2 * pi *  TimeC/(48*13*7)))
+summary(Ar.lm4)
+Ar.lm5 <- lm(Arnside.ts ~  COS[, 1 ] + SIN[, 1 ] + SIN[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... + COS[, 91 ] + SIN[, 91 ]  + SIN[, 98 ] + COS[, 112 ] + COS[, 119 ] + SIN[, 119 ] + COS[, 126 ] + SIN[, 126 ]+ COS[, 133 ] + SIN[, 133 ] + COS[, 133 ] + SIN[, 133 ] + COS[, 140 ] + SIN[, 140] +  COS[, 161 ]+ cos(2 * pi *  TimeC/(48*56*7)) +sin(2 * pi *  TimeC/(48*56*7))+ cos(2 * pi *  TimeC/(48*28*7)) + cos(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*167*7))+ cos(2 * pi *  TimeC/(48*24*7)) +sin(2 * pi *  TimeC/(48*24*7))+ cos(2 * pi *  TimeC/(48*26*7)) +sin(2 * pi *  TimeC/(48*26*7))+ cos(2 * pi *  TimeC/(48*84*7)) +sin(2 * pi *  TimeC/(48*84*7))+ cos(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+sin(2 * pi *  TimeC/(48*9*7))+  cos(2 * pi *  TimeC/(48*15*7)) + cos(2 * pi *  TimeC/(48*6*7)) +sin(2 * pi *  TimeC/(48*6*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*10*7)) +sin(2 * pi *  TimeC/(48*10*7))+ cos(2 * pi *  TimeC/(48*12*7)) +sin(2 * pi *  TimeC/(48*12*7))+cos(2 * pi *  TimeC/(48*5*7)) +cos(2 * pi *  TimeC/(48*19*7)) +cos(2 * pi *  TimeC/(48*4*7)) +sin(2 * pi *  TimeC/(48*4*7)) + cos(2 * pi *  TimeC/(48*8*7)) +sin(2 * pi *  TimeC/(48*8*7))+ cos(2 * pi *  TimeC/(48*16*7)) +sin(2 * pi *  TimeC/(48*16*7))+  cos(2 * pi *  TimeC/(48*22*7)) +sin(2 * pi *  TimeC/(48*22*7))+ cos(2 * pi *  TimeC/(48*11*7)) +sin(2 * pi *  TimeC/(48*11*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7))+ cos(2 * pi *  TimeC/(48*13*7)) +sin(2 * pi *  TimeC/(48*13*7)))
+summary(Ar.lm5)
+res2=resid(Ar.lm5)
+windows()
+layout(1:2)
+acf(res2,lag.max = (48*7))
+pacf(res2,lag.max = (48*7))
+
+#spectrum for res2
+res2.spec <- spectrum(res2)
+Frequ2=res2.spec$freq
+Spec2=res2.spec$spec
+tp2=turnpoints(Spec2)
+spectp2=Spec2[tp2$tppos]
+freqtp2=Frequ2[tp2$tppos]
+cbind(freqtp2[order(spectp2)],spectp2[order(spectp2)])
+1/(cbind(freqtp2[order(spectp2)],spectp2[order(spectp2)])[36700:36773,1])/(48*7)
+#48 67 112 17 20 21 14 37
+#Fitted Model 3
+Ar.lm6 <- lm(Arnside.ts ~  COS[, 1 ] + SIN[, 1 ] + SIN[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... + cos(2 * pi *  TimeC/(48*22*7)) +sin(2 * pi *  TimeC/(48*22*7))+ cos(2 * pi *  TimeC/(48*11*7)) +sin(2 * pi *  TimeC/(48*11*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7))+ cos(2 * pi *  TimeC/(48*13*7)) +sin(2 * pi *  TimeC/(48*13*7))+ cos(2 * pi *  TimeC/(48*48*7)) +sin(2 * pi *  TimeC/(48*48*7))+ cos(2 * pi *  TimeC/(48*67*7)) +sin(2 * pi *  TimeC/(48*67*7))+ cos(2 * pi *  TimeC/(48*112*7)) +sin(2 * pi *  TimeC/(48*112*7))+ cos(2 * pi *  TimeC/(48*17*7)) +sin(2 * pi *  TimeC/(48*17*7))+ cos(2 * pi *  TimeC/(48*20*7)) +sin(2 * pi *  TimeC/(48*20*7))+ cos(2 * pi *  TimeC/(48*21*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*14*7)) +sin(2 * pi *  TimeC/(48*14*7))+ cos(2 * pi *  TimeC/(48*37*7)) +sin(2 * pi *  TimeC/(48*37*7)))
+summary(Ar.lm6)
+Ar.lm7 <- lm(Arnside.ts ~  COS[, 1 ] + SIN[, 1 ] + SIN[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... + COS[, 91 ] + SIN[, 91 ]  + SIN[, 98 ] + COS[, 112 ] + COS[, 119 ] + SIN[, 119 ] + COS[, 126 ] + SIN[, 126 ]+ COS[, 133 ] + SIN[, 133 ] + COS[, 133 ] + SIN[, 133 ] + COS[, 140 ] + SIN[, 140] +  COS[, 161 ]+ cos(2 * pi *  TimeC/(48*56*7)) +sin(2 * pi *  TimeC/(48*56*7))+ cos(2 * pi *  TimeC/(48*28*7)) + cos(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*24*7))+ cos(2 * pi *  TimeC/(48*26*7)) +sin(2 * pi *  TimeC/(48*26*7))+ cos(2 * pi *  TimeC/(48*84*7)) +sin(2 * pi *  TimeC/(48*84*7))+ cos(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+  cos(2 * pi *  TimeC/(48*15*7)) + cos(2 * pi *  TimeC/(48*6*7)) +sin(2 * pi *  TimeC/(48*6*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*10*7)) +sin(2 * pi *  TimeC/(48*10*7))+ cos(2 * pi *  TimeC/(48*12*7)) +sin(2 * pi *  TimeC/(48*12*7))+cos(2 * pi *  TimeC/(48*5*7)) +cos(2 * pi *  TimeC/(48*19*7)) +cos(2 * pi *  TimeC/(48*4*7)) +sin(2 * pi *  TimeC/(48*4*7)) + cos(2 * pi *  TimeC/(48*8*7)) +sin(2 * pi *  TimeC/(48*8*7))+ cos(2 * pi *  TimeC/(48*16*7)) +sin(2 * pi *  TimeC/(48*22*7))+ cos(2 * pi *  TimeC/(48*11*7)) +sin(2 * pi *  TimeC/(48*11*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7))+ cos(2 * pi *  TimeC/(48*13*7)) +sin(2 * pi *  TimeC/(48*13*7))+ cos(2 * pi *  TimeC/(48*48*7)) +sin(2 * pi *  TimeC/(48*48*7))+ cos(2 * pi *  TimeC/(48*67*7)) +sin(2 * pi *  TimeC/(48*67*7))+ cos(2 * pi *  TimeC/(48*112*7)) +sin(2 * pi *  TimeC/(48*112*7))+ cos(2 * pi *  TimeC/(48*17*7)) +sin(2 * pi *  TimeC/(48*17*7))+ cos(2 * pi *  TimeC/(48*20*7)) +sin(2 * pi *  TimeC/(48*20*7))+ cos(2 * pi *  TimeC/(48*21*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*14*7)) +sin(2 * pi *  TimeC/(48*14*7))+ cos(2 * pi *  TimeC/(48*37*7)) +sin(2 * pi *  TimeC/(48*37*7)))
+summary(Ar.lm7)
+
+#spectrum for res3
+res3.spec <- spectrum(res3)
+Frequ3=res3.spec$freq
+Spec3=res3.spec$spec
+tp3=turnpoints(Spec3)
+spectp3=Spec3[tp3$tppos]
+freqtp3=Frequ3[tp3$tppos]
+cbind(freqtp3[order(spectp3)],spectp3[order(spectp3)])
+1/(cbind(freqtp3[order(spectp3)],spectp3[order(spectp3)])[36700:36768,1])/(48*7)[1]  0.14407118  0.03578681  1.42477204  3.01640927  0.02380868  0.01786286
+#42 30
+#Fitted Model 4
+Ar.lm8 <- lm(Arnside.ts ~  COS[, 1 ] + SIN[, 1 ] + SIN[, 2 ] + COS[, 3 ] + SIN[, 3 ] + ... + cos(2 * pi *  TimeC/(48*21*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*14*7)) +sin(2 * pi *  TimeC/(48*14*7))+ cos(2 * pi *  TimeC/(48*37*7)) +sin(2 * pi *  TimeC/(48*37*7))+ cos(2 * pi *  TimeC/(48*42*7)) +sin(2 * pi *  TimeC/(48*42*7))+ cos(2 * pi *  TimeC/(48*30*7)) +sin(2 * pi *  TimeC/(48*30*7)))
+summary(Ar.lm8)
+Ar.lm9 <- lm(Arnside.ts ~  COS[, 1 ] + SIN[, 1 ] + SIN[, 2 ] + COS[, 3 ] + ... + COS[, 91 ] + SIN[, 91 ]  + SIN[, 98 ] + COS[, 112 ] + COS[, 119 ] + SIN[, 119 ] + COS[, 126 ] + SIN[, 126 ]+ COS[, 133 ] + SIN[, 133 ] + COS[, 133 ] + SIN[, 133 ] + COS[, 140 ] + SIN[, 140] +  COS[, 161 ]+ cos(2 * pi *  TimeC/(48*56*7)) +sin(2 * pi *  TimeC/(48*56*7))+ cos(2 * pi *  TimeC/(48*28*7)) + cos(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*24*7))+ cos(2 * pi *  TimeC/(48*26*7)) +sin(2 * pi *  TimeC/(48*26*7))+ cos(2 * pi *  TimeC/(48*84*7)) +sin(2 * pi *  TimeC/(48*84*7))+sin(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+  cos(2 * pi *  TimeC/(48*15*7)) +sin(2 * pi *  TimeC/(48*6*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*10*7)) +sin(2 * pi *  TimeC/(48*10*7))+ cos(2 * pi *  TimeC/(48*12*7)) +sin(2 * pi *  TimeC/(48*12*7))+cos(2 * pi *  TimeC/(48*5*7)) +cos(2 * pi *  TimeC/(48*19*7)) +cos(2 * pi *  TimeC/(48*4*7)) +sin(2 * pi *  TimeC/(48*4*7)) + cos(2 * pi *  TimeC/(48*8*7)) +sin(2 * pi *  TimeC/(48*8*7))+ cos(2 * pi *  TimeC/(48*16*7)) +sin(2 * pi *  TimeC/(48*22*7))+ cos(2 * pi *  TimeC/(48*11*7)) +sin(2 * pi *  TimeC/(48*11*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*13*7))+ cos(2 * pi *  TimeC/(48*48*7)) +sin(2 * pi *  TimeC/(48*48*7))+ cos(2 * pi *  TimeC/(48*67*7)) +sin(2 * pi *  TimeC/(48*67*7))+ cos(2 * pi *  TimeC/(48*112*7)) +sin(2 * pi *  TimeC/(48*112*7))+ cos(2 * pi *  TimeC/(48*17*7)) +sin(2 * pi *  TimeC/(48*17*7))+ cos(2 * pi *  TimeC/(48*20*7)) + cos(2 * pi *  TimeC/(48*21*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*14*7)) +sin(2 * pi *  TimeC/(48*14*7))+ cos(2 * pi *  TimeC/(48*37*7)) +sin(2 * pi *  TimeC/(48*37*7))+ cos(2 * pi *  TimeC/(48*42*7)) +sin(2 * pi *  TimeC/(48*42*7))+ cos(2 * pi *  TimeC/(48*30*7)) +sin(2 * pi *  TimeC/(48*30*7)))
+summary(Ar.lm9)
+res4=resid(Ar.lm9)
+windows()
+layout(1:2)
+acf(res4,lag.max = (48*7))
+pacf(res4,lag.max = (48*7))
+
+#spectrum for res4
+res4.spec <- spectrum(res4)
+Frequ4=res4.spec$freq
+Spec4=res4.spec$spec
+tp4=turnpoints(Spec4)
+spectp4=Spec4[tp4$tppos]
+freqtp4=Frequ4[tp4$tppos]
+cbind(freqtp4[order(spectp4)],spectp4[order(spectp4)])
+1/(cbind(freqtp4[order(spectp4)],spectp4[order(spectp4)])[36700:36768,1])/(48*7)
+#28 9 5 3
+#Fitted Model 5
+Ar.lm10 <- lm(Arnside.ts ~  COS[, 1 ] + SIN[, 1 ] + SIN[, 2 ] + COS[, 3 ] + SIN[, 3 ] + COS[, 4 ] + SIN[, 4 ] + COS[, 5 ] + SIN[, 5 ] + SIN[, 6 ] + SIN[, 7 ] + SIN[, 8 ] + SIN[, 9 ] + COS[, 10 ] + SIN[, 10 ] + COS[, 11 ] + COS[, 12 ] + SIN[, 12 ] + COS[, 13 ] + SIN[, 13 ] + COS[, 14 ] + SIN[, 14 ] + COS[, 15 ] + SIN[, 15 ] + COS[, 16 ] + SIN[, 16 ] + COS[, 19 ] + COS[, 20 ] + SIN[, 20 ] + COS[, 21 ] + SIN[, 21 ] + COS[, 22 ] + SIN[, 22 ] + COS[, 23 ] + SIN[, 23 ] + COS[, 26 ] + SIN[, 26 ] + SIN[, 27 ] + COS[, 28 ] + SIN[, 28 ] + COS[, 29 ] + SIN[, 29 ] + SIN[, 30 ] + COS[, 31 ] + COS[, 32 ] + COS[, 33 ] + SIN[, 33 ] + COS[, 34 ] + SIN[, 34 ] + COS[, 35 ] + SIN[, 35 ] + COS[, 36 ] + SIN[, 36 ] + COS[, 37 ] + COS[, 41 ] + SIN[, 41 ] + COS[, 42 ] + SIN[, 42 ] + COS[, 43 ] + SIN[, 47 ] + SIN[, 48 ] + COS[, 49 ] + SIN[, 49 ] + SIN[, 50 ] + COS[, 55 ] + COS[, 56 ] + SIN[, 56 ] + SIN[, 63 ] + COS[, 77 ] + COS[, 84 ] + COS[, 91 ] + SIN[, 91 ]  + SIN[, 98 ] + COS[, 112 ] + COS[, 119 ] + SIN[, 119 ] + COS[, 126 ] + SIN[, 126 ]+ COS[, 133 ] + SIN[, 133 ] + COS[, 133 ] + SIN[, 133 ] + COS[, 140 ] + SIN[, 140] +  COS[, 161 ]+\\
+cos(2 * pi *  TimeC/(48*56*7)) +sin(2 * pi *  TimeC/(48*56*7))+ cos(2 * pi *  TimeC/(48*28*7)) + cos(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*167*7)) +sin(2 * pi *  TimeC/(48*24*7))+ cos(2 * pi *  TimeC/(48*26*7)) +sin(2 * pi *  TimeC/(48*26*7))+ cos(2 * pi *  TimeC/(48*84*7)) +sin(2 * pi *  TimeC/(48*84*7))+sin(2 * pi *  TimeC/(48*18*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+  cos(2 * pi *  TimeC/(48*15*7)) +sin(2 * pi *  TimeC/(48*6*7))+ cos(2 * pi *  TimeC/(48*7*7)) +sin(2 * pi *  TimeC/(48*7*7))+ cos(2 * pi *  TimeC/(48*10*7)) +sin(2 * pi *  TimeC/(48*10*7))+ cos(2 * pi *  TimeC/(48*12*7)) +sin(2 * pi *  TimeC/(48*12*7))+cos(2 * pi *  TimeC/(48*5*7)) +cos(2 * pi *  TimeC/(48*19*7)) +cos(2 * pi *  TimeC/(48*4*7)) +sin(2 * pi *  TimeC/(48*4*7)) + cos(2 * pi *  TimeC/(48*8*7)) +sin(2 * pi *  TimeC/(48*8*7))+ cos(2 * pi *  TimeC/(48*16*7)) +sin(2 * pi *  TimeC/(48*22*7))+ cos(2 * pi *  TimeC/(48*11*7)) +sin(2 * pi *  TimeC/(48*11*7))+ cos(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*33*7)) +sin(2 * pi *  TimeC/(48*13*7))+ cos(2 * pi *  TimeC/(48*48*7)) +sin(2 * pi *  TimeC/(48*48*7))+ cos(2 * pi *  TimeC/(48*67*7)) +sin(2 * pi *  TimeC/(48*67*7))+ cos(2 * pi *  TimeC/(48*112*7)) +sin(2 * pi *  TimeC/(48*112*7))+ cos(2 * pi *  TimeC/(48*17*7)) +sin(2 * pi *  TimeC/(48*17*7))+ cos(2 * pi *  TimeC/(48*20*7)) + cos(2 * pi *  TimeC/(48*21*7)) +sin(2 * pi *  TimeC/(48*21*7))+ cos(2 * pi *  TimeC/(48*14*7)) +sin(2 * pi *  TimeC/(48*14*7))+ cos(2 * pi *  TimeC/(48*37*7)) +sin(2 * pi *  TimeC/(48*37*7))+ cos(2 * pi *  TimeC/(48*42*7)) +sin(2 * pi *  TimeC/(48*42*7))+ cos(2 * pi *  TimeC/(48*30*7)) +sin(2 * pi *  TimeC/(48*30*7))+ cos(2 * pi *  TimeC/(48*28*7)) +sin(2 * pi *  TimeC/(48*28*7))+ cos(2 * pi *  TimeC/(48*9*7)) + cos(2 * pi *  TimeC/(48*5*7)) +sin(2 * pi *  TimeC/(48*5*7))+sin(2 * pi *  TimeC/(48*3*7)))
+summary(Ar.lm10)
+res5=resid(Ar.lm10)
+
+#3.plot ACF/PACF charts and find optimal parameters
+windows()
+layout(1:2)
+acf(res5,lag.max = (48*7))
+pacf(res5,lag.max = (48*7))
+
+AIC(arima(res5, order = c(0, 0, 0),seasonal=list(order=c(0,0,0),period=48)))
+AIC(arima(res5, order = c(0, 0, 1),seasonal=list(order=c(0,0,0),period=48)))
+AIC(arima(res5, order = c(0, 0, 0),seasonal=list(order=c(1,0,0),period=48)))
+AIC(arima(res5, order = c(0, 0, 1),seasonal=list(order=c(1,0,0),period=48)))
+AIC(arima(res5, order = c(0, 0, 0),seasonal=list(order=c(0,0,1),period=48)))
+AIC(arima(res5, order = c(0, 0, 1),seasonal=list(order=c(0,0,1),period=48)))
+AIC(arima(res5, order = c(0, 0, 0),seasonal=list(order=c(1,0,1),period=48)))
+AIC(arima(res5, order = c(0, 0, 1),seasonal=list(order=c(1,0,1),period=48)))
+AIC(arima(res5, order = c(1, 0, 0),seasonal=list(order=c(0,0,0),period=48)))
+AIC(arima(res5, order = c(1, 0, 1),seasonal=list(order=c(0,0,0),period=48)))
+AIC(arima(res5, order = c(1, 0, 0),seasonal=list(order=c(1,0,0),period=48)))
+AIC(arima(res5, order = c(1, 0, 1),seasonal=list(order=c(1,0,0),period=48)))
+AIC(arima(res5, order = c(1, 0, 0),seasonal=list(order=c(0,0,1),period=48)))
+AIC(arima(res5, order = c(1, 0, 1),seasonal=list(order=c(0,0,1),period=48)))
+AIC(arima(res5, order = c(1, 0, 0),seasonal=list(order=c(1,0,1),period=48)))
+AIC(arima(res5, order = c(1, 0, 1),seasonal=list(order=c(1,0,1),period=48)))
+
+arimares1=arima(res5,order=c(1,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+AIC(arima(res5,order=c(1,0,1),seasonal=list(order=c(1,0,1),period=48),init =coef(arimares1)))
+windows()
+layout(1:3)
+plot(resid(arimares1))
+acf(resid(arimares1),lag.max = (48*7))
+pacf(resid(arimares1),lag.max = (48*7))
+
+arimares2=arima(res5,order=c(3,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+as2=arima(res5,order=c(3,0,1),seasonal=list(order=c(1,0,1),period=48),init =coef(arimares2))
+AIC(as2)
+2*8-2*(as2$loglik)#-148316.6
+arimares2=arima(res5,order=c(4,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*9-2*(arimares2$loglik)#-148587.7
+arimares2=arima(res5,order=c(5,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*10-2*(arimares2$loglik)#-148602.7
+arimares2=arima(res5,order=c(6,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*11-2*(arimares2$loglik)#-148734.6
+arimares2=arima(res5,order=c(7,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*12-2*(arimares2$loglik)#-148776.4
+arimares2=arima(res5,order=c(8,0,1),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*13-2*(arimares2$loglik)#-148259.2
+windows()
+par(mfrow=c(2,2))
+acf(resid(arimares2),lag.max = (48*7))
+pacf(resid(arimares2),lag.max = (48*7))
+acf(resid(arimares2),lag.max = (48))
+pacf(resid(arimares2),lag.max = (48))
+
+arimares3=arima(res5,order=c(7,0,2),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*13-2*(arimares3$loglik) #-148768.4
+arimares3=arima(res5,order=c(7,0,3),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*14-2*(arimares3$loglik) #-148743.7
+arimares3=arima(res5,order=c(7,0,4),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*15-2*(arimares3$loglik) #-148741.1
+arimares3=arima(res5,order=c(7,0,5),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*16-2*(arimares3$loglik) #-148758
+arimares3=arima(res5,order=c(7,0,6),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*17-2*(arimares3$loglik) #-148985.3
+arimares3=arima(res5,order=c(7,0,7),seasonal=list(order=c(1,0,1),period=48),method="CSS")
+2*18-2*(arimares3$loglik) #-148753.2
+
+arimares4=arima(res5,order=c(7,0,6),seasonal=list(order=c(2,0,1),period=48),method="CSS")
+2*18-2*(arimares4$loglik) #-148922.4
+arimares4=arima(res5,order=c(7,0,6),seasonal=list(order=c(3,0,1),period=48),method="CSS")
+2*19-2*(arimares4$loglik) #-148617.6
+arimares4=arima(res5,order=c(7,0,6),seasonal=list(order=c(4,0,1),period=48),method="CSS")
+2*20-2*(arimares4$loglik) #-148869.6
+arimares4=arima(res5,order=c(7,0,6),seasonal=list(order=c(5,0,1),period=48),method="CSS")
+2*21-2*(arimares4$loglik) #-149565.4
+
+arimares5=arima(res5,order=c(7,0,6),seasonal=list(order=c(5,0,2),period=48),method="CSS")
+2*22-2*(arimares5$loglik) #-149765.1
+arimares5=arima(res5,order=c(7,0,6),seasonal=list(order=c(5,0,3),period=48),method="CSS")
+2*23-2*(arimares5$loglik) #-150315.3
+arimares5=arima(res5,order=c(7,0,6),seasonal=list(order=c(5,0,4),period=48),method="CSS")
+2*24-2*(arimares5$loglik) #-150025.5
+arimares5=arima(res5,order=c(7,0,6),seasonal=list(order=c(5,0,5),period=48),method="CSS")
+2*25-2*(arimares5$loglik) #-150563.2
+#arimares5=arima(res5,order=c(7,0,6),seasonal=list(order=c(6,0,5),period=48),method="CSS")
+windows()
+arimares5
+par(mfrow=c(2,2))
+acf(resid(arimares5),lag.max = (48*7))
+pacf(resid(arimares5),lag.max = (48*7))
+acf(resid(arimares5),lag.max = (48))
+pacf(resid(arimares5),lag.max = (48))
+Box.test(residuals(arimares1),type="Ljung")
+
+arimares6=arima(res5,order=c(20,0,6),seasonal=list(order=c(5,0,5),period=48),method="CSS")
+2*38-2*(arimares6$loglik) #-150804.7
+tsdiag(arimares6)
+windows()
+par(mfrow=c(2,2))
+acf(resid(arimares6),lag.max = (48*7))
+pacf(resid(arimares6),lag.max = (48*7))
+acf(resid(arimares6),lag.max = (48))
+pacf(resid(arimares6),lag.max = (48))
+Box.test(residuals(arimares6),type="Ljung")
+
+\end{lstlisting}
+
+\chapter{R Codes in the DFT}
+\label{app:dft-codes}
+The FFT procedures at the BspAlb:
+\begin{lstlisting}[language=R,breaklines=true]
+Al<-as.ts(AlbionSt.ts)
+N<-length(Al)
+fral<-c(0:(N-1))/N
+perdal<-N/c(0:(N-1))
+fft.Al<-cbind(n=c(0:(N-1)),fft=abs(fft(Al)),freq=fral,period=perdal)
+fft.Al[order(fft.Al[,2],decreasing=TRUE),][1:10,]
+\end{lstlisting}
+The FFT procedures at the BspArn:
+\begin{lstlisting}[language=R,breaklines=true]
+Ar<-as.ts(Arnside.ts)
+N<-length(Ar)
+frar<-c(0:(N-1))/N
+perdar<-N/c(0:(N-1))
+fft.Ar<-cbind(n=c(0:(N-1)),fft=abs(fft(Ar)),freq=frar,period=perdar)
+fft.Ar[order(fft.Ar[,2],decreasing=TRUE),][1:10,]
+\end{lstlisting}
+\endgroup
+(All R codes involved are available online)
+\end{document}
